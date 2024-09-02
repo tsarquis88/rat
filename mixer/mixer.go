@@ -1,39 +1,31 @@
 package mixer
 
 import (
-	"fmt"
-	"example.com/fileManager"
+	"example.com/dataBytesManager"
 )
 
 type mixer struct {
-	managers []fileManager.FileManager
+	managers []dataBytesManager.IDataBytesManager
 }
 
-func New(files []string) (mixer) {
-	var mixer = mixer {}
-	for _, file := range files {
-		fmt.Printf("Reading file: %s\n", file)
-		mixer.managers = append(mixer.managers, fileManager.New(file, false))
-	}
-	fmt.Printf("Files read: %d\n", len(mixer.managers))
-	return mixer
+func NewMixer(managers []dataBytesManager.IDataBytesManager) (mixer) {
+	return mixer {managers}
 }
 
-func remove(slice []fileManager.FileManager, s int) []fileManager.FileManager {
+func remove(slice []dataBytesManager.IDataBytesManager, s int) []dataBytesManager.IDataBytesManager {
 	if len(slice) == 1 {
-		return []fileManager.FileManager{}
+		return []dataBytesManager.IDataBytesManager{}
 	}
     return append(slice[:s], slice[s+1:]...)
 }
 
-func (mixer mixer) Mix() {
+func (mixer mixer) Mix() (mixedData []byte) {
 	var data []byte
 
 	for {
 		for index, manager := range mixer.managers {
 			newByte, n := manager.Read()
 			if n == 0 {
-				
 				mixer.managers = remove(mixer.managers, index)
 				continue
 			}
@@ -45,6 +37,6 @@ func (mixer mixer) Mix() {
 		}
 	}
 
-	fmt.Printf("Data: \n\n%s", data)
+	return data
 }
 

@@ -11,7 +11,7 @@ type FileManager struct {
 	fileHandle os.File
 }
 
-func New(filename string, write bool) (FileManager) {
+func NewFileManager(filename string, write bool) (FileManager) {
 	var mode int
 	if write {
 		mode = os.O_CREATE | os.O_WRONLY
@@ -35,7 +35,7 @@ func (manager FileManager) Read() (byte, int) {
 	return buff[0], readBytes
 }
 
-func (manager FileManager) write(data byte) (int) {
+func (manager FileManager) Write(data byte) (int) {
 	bytesWriten, err := manager.fileHandle.Write([]byte{data})
 	if err != nil && !errors.Is(err, io.EOF) {
 		panic(err)

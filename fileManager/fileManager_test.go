@@ -25,23 +25,23 @@ func (suite *FileManagerTestSuite) TearDownTest() {
 }
 
 func (suite *FileManagerTestSuite) TestNewReadMode() {
-	assert.NotPanics(suite.T(), func() {New(TestFileA, false)}, "Should not panic")
+	assert.NotPanics(suite.T(), func() {NewFileManager(TestFileA, false)}, "Should not panic")
 }
 
 func (suite *FileManagerTestSuite) TestNewReadModeInexistantFile() {
-	assert.Panics(suite.T(), func() {New(TestFileB, false)}, "Should panic")
+	assert.Panics(suite.T(), func() {NewFileManager(TestFileB, false)}, "Should panic")
 }
 
 func (suite *FileManagerTestSuite) TestNewWriteMode() {
-	assert.NotPanics(suite.T(), func() {New(TestFileA, true)}, "Should not panic")
+	assert.NotPanics(suite.T(), func() {NewFileManager(TestFileA, true)}, "Should not panic")
 }
 
 func (suite *FileManagerTestSuite) TestNewWriteModeNewFile() {
-	assert.NotPanics(suite.T(), func() {New(TestFileB, true)}, "Should not panic")
+	assert.NotPanics(suite.T(), func() {NewFileManager(TestFileB, true)}, "Should not panic")
 }
 
 func (suite *FileManagerTestSuite) TestRead() {
-	manager := New(TestFileA, false)
+	manager := NewFileManager(TestFileA, false)
 
 	dataA, bytesReadA := manager.Read()
 	assert.Equal(suite.T(), bytesReadA, 1)
@@ -60,11 +60,11 @@ func (suite *FileManagerTestSuite) TestRead() {
 }
 
 func (suite *FileManagerTestSuite) TestWrite() {
-	manager := New(TestFileB, true)
+	manager := NewFileManager(TestFileB, true)
 
-	assert.Equal(suite.T(), manager.write(byte('X')), 1)
-	assert.Equal(suite.T(), manager.write(byte('Y')), 1)
-	assert.Equal(suite.T(), manager.write(byte('Z')), 1)
+	assert.Equal(suite.T(), manager.Write(byte('X')), 1)
+	assert.Equal(suite.T(), manager.Write(byte('Y')), 1)
+	assert.Equal(suite.T(), manager.Write(byte('Z')), 1)
 
 	file, err := os.OpenFile(TestFileB, os.O_RDONLY, 0755)
 	if err != nil {

@@ -7,8 +7,8 @@ import (
 )
 
 type Metadata struct {
-	filename string
-	size int64
+	Filename string
+	Size int64
 }
 
 func Generate(files []string) ([]Metadata) {
@@ -33,21 +33,18 @@ func Dump(metadatas []Metadata) []byte {
 
 	for _, metadata := range metadatas {
 		fileSizeAsBytes := make([]byte, 8)
-		binary.LittleEndian.PutUint64(fileSizeAsBytes, uint64(metadata.size))
+		binary.LittleEndian.PutUint64(fileSizeAsBytes, uint64(metadata.Size))
 
 		var metadataDump []byte
-		metadataDump = append(metadataDump, byte(len(metadata.filename)))
-		metadataDump = append(metadataDump, []byte(metadata.filename)...)
+		metadataDump = append(metadataDump, byte(len(metadata.Filename)))
+		metadataDump = append(metadataDump, []byte(metadata.Filename)...)
 		metadataDump = append(metadataDump, fileSizeAsBytes...)
 		metadatasDump = append(metadatasDump, metadataDump...)
 	}
 	return metadatasDump
 }
 
-// q fs f f f f s s s s s s s s
-// 0 1  2 3 4 5 6 7 8 9 0 1 2 3
-
-func Parse(dump []byte) []Metadata {
+func Parse(dump []byte) ([]Metadata, int) {
 	var metadatas []Metadata
 
 	metadatasQty := dump[0]
@@ -71,5 +68,5 @@ func Parse(dump []byte) []Metadata {
 			break
 		}
 	}
-	return metadatas
+	return metadatas, idx
 }

@@ -101,9 +101,12 @@ func (suite *MetadataGeneratorTestSuite) TestParseOneMetadata() {
 	dump = append(dump, byte(len(FileNameA)))
 	dump = append(dump, []byte(FileNameA)...)
 	dump = append(dump, expectedFileSize...)
+	expectedReadBytes := len(dump)
+	dump = append(dump, []byte("Unread data")...)
 
-	metadatas := Parse(dump)
+	metadatas, bytes := Parse(dump)
 	assert.Equal(suite.T(), expectedMetadatas, metadatas)
+	assert.Equal(suite.T(), expectedReadBytes, bytes)
 }
 
 func (suite *MetadataGeneratorTestSuite) TestParseMultipleMetadatas() {
@@ -123,9 +126,12 @@ func (suite *MetadataGeneratorTestSuite) TestParseMultipleMetadatas() {
 	dump = append(dump, byte(len(FileNameB)))
 	dump = append(dump, []byte(FileNameB)...)
 	dump = append(dump, expectedFileSizeB...)
+	expectedReadBytes := len(dump)
+	dump = append(dump, []byte("Unread data")...)
 
-	metadatas := Parse(dump)
+	metadatas, bytes := Parse(dump)
 	assert.Equal(suite.T(), expectedMetadatas, metadatas)
+	assert.Equal(suite.T(), expectedReadBytes, bytes)
 }
 
 func TestMetadataGeneratorTestSuite(t *testing.T) {

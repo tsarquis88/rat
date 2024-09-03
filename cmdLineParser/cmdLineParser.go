@@ -1,12 +1,16 @@
 package cmdLineParser
 
-import "errors"
-
-func Parse(args []string) (string, []string, error) {
-	if (len(args) <= 2) {
-		return "", nil, errors.New("missing files")
+func Parse(args []string) (string, []string) {
+	argsQty := len(args)
+	if argsQty < 2 {
+		panic("Missing arguments")
 	}
 
-	listOfFiles := args[2:]
-	return args[1], listOfFiles, nil
+	if argsQty == 2 {
+		// Demix
+		return args[1], nil
+	}
+
+	// Mix
+	return args[1], args[2:]
 }

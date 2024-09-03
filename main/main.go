@@ -10,30 +10,43 @@ import (
 	"example.com/dataBytesDumper"
 	"example.com/metadataManager"
 	"example.com/mixer"
+	"example.com/demixer"
 )
+
+func mix(outputFile string, inputFiles []string) {
+	fmt.Printf("Mix: %s\n", inputFiles)
+
+	var managers []dataBytesManager.IDataBytesManager
+	for _, file := range inputFiles {
+		managers = append(managers, dataBytesFileManager.NewDataBytesFileManager(file))
+	}
+
+	dumpData := metadataManager.Dump(metadataManager.Generate(inputFiles))
+	dumpData = append(dumpData, mixer.NewMixer(managers).Mix()...)
+	dataBytesDumper.NewDataBytesDumper(outputFile).Dump(dumpData)
+
+	fmt.Printf("Files mixed into: %s\n", outputFile)
+}
+
+func demix(inputFile string) {
+	fmt.Printf("Demix: %s\n", inputFile)
+
+	fileManager := dataBytesFileManager.NewDataBytesFileManager(inputFile)
+
+	for _, demixData := range demixer.Demix(fileManager) {
+		fmt.Printf("Writing file %s\n", demixData.Filename)
+		os.WriteFile(demixData.Filename, demixData.Data, 0755)
+	}
+}
 
 func main() {
 	// Parse arguments
-	output, files, err := cmdLineParser.Parse(os.Args)
-	if (err != nil)	{
-		fmt.Println("Input files missing")
-		os.Exit(0)
+	file, list := cmdLineParser.Parse(os.Args)
+
+	if list == nil {
+		demix(file)
+	} else
+	{
+		mix(file, list)
 	}
-	fmt.Printf("Files to be mixed: %s\n", files)
-
-	var managers []dataBytesManager.IDataBytesManager
-	for _, file := range files {
-		fmt.Printf("Reading file: %s\n", file)
-		managers = append(managers, dataBytesFileManager.NewDataBytesFileManager(file))
-	}
-	fmt.Printf("Files read: %d\n", len(managers))
-
-	fmt.Print("Generating metadata...\n")
-	dumpData := metadataManager.Dump(metadataManager.Generate(files))
-
-	fmt.Print("Mixing...\n")
-	dumpData = append(dumpData, mixer.NewMixer(managers).Mix()...)
-
-	fmt.Printf("Dumping to %s\n", output)
-	dataBytesDumper.NewDataBytesDumper(output).Dump(dumpData)
 }

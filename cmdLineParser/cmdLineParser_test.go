@@ -5,26 +5,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParseNoFiles(t *testing.T) {
+func TestParseNoArguments(t *testing.T) {
     args := []string{"binaryName"}
-	output, input, err := Parse(args)
-	assert.Empty(t, output)
-	assert.Nil(t, input)
-	assert.NotNil(t, err)
+	assert.Panics(t, func() {Parse(args)}, "Should panic")
 }
 
-func TestParseOneFile(t *testing.T) {
-    args := []string{"binaryName", "outputFile", "filenameA"}
-	output, input, err := Parse(args)
-	assert.Equal(t, output, "outputFile", "They should be equal")
-	assert.Equal(t, input, []string{"filenameA"}, "They should be equal")
-	assert.Nil(t, err)
+func TestParseDemix(t *testing.T) {
+    args := []string{"binaryName", "inputFile.mix"}
+	inputFile, list := Parse(args)
+	assert.Equal(t, inputFile, "inputFile.mix", "Should be equal")
+	assert.Nil(t, list, "Should be null")
 }
 
-func TestParseMultipleFiles(t *testing.T) {
-    args := []string{"binaryName", "outputFile", "filenameA", "filenameB", "filenameC"}
-	output, input, err := Parse(args)
-	assert.Equal(t, output, "outputFile", "They should be equal")
-	assert.Equal(t, input, []string{"filenameA", "filenameB", "filenameC"}, "They should be equal")
-	assert.Nil(t, err)
+func TestParseMix(t *testing.T) {
+    args := []string{"binaryName", "outputFile.mix", "filenameA", "filenameB", "filenameC"}
+	outputFile, list := Parse(args)
+	assert.Equal(t, outputFile, "outputFile.mix", "Should be equal")
+	assert.Equal(t, list, []string{"filenameA", "filenameB", "filenameC"}, "Should be equal")
 }

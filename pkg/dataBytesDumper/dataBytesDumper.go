@@ -9,7 +9,8 @@ type DataBytesDumper struct {
 }
 
 func NewDataBytesDumper(filename string) (DataBytesDumper) {
-	fileHandle, err := os.OpenFile(filename, os.O_CREATE | os.O_WRONLY, 0755)
+	mode := os.FileMode(438) // RW-RW-RW
+	fileHandle, err := os.OpenFile(filename, os.O_CREATE | os.O_WRONLY, mode)
 	if err != nil {
 		panic(err)
 	}

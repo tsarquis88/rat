@@ -35,7 +35,7 @@ func demix(inputFile string) {
 
 	for _, demixData := range demixer.Demix(fileManager) {
 		fmt.Printf("Writing file %s\n", demixData.Filename)
-		os.WriteFile(demixData.Filename, demixData.Data, 0755)
+		os.WriteFile(demixData.Filename, demixData.Data, os.FileMode(demixData.Mode))
 	}
 }
 

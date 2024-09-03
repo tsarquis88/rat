@@ -8,6 +8,7 @@ import (
 type DemixData struct {
 	Filename string
 	Data []byte
+	Mode uint32
 }
 
 type demixDataInternal struct {
@@ -21,7 +22,7 @@ func Demix(dataBytesSource dataBytesManager.IDataBytesManager) []DemixData {
 
 	var filesDemixData []demixDataInternal
 	for _, metadata := range metadatas {
-		filesDemixData = append(filesDemixData, demixDataInternal{DemixData{metadata.Filename, []byte{}}, int(metadata.Size)})
+		filesDemixData = append(filesDemixData, demixDataInternal{DemixData{metadata.Filename, []byte{}, metadata.Mode}, int(metadata.Size)})
 	}
 
 	fileIdx := 0

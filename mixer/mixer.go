@@ -24,12 +24,12 @@ func (mixer mixer) Mix() (mixedData []byte) {
 
 	for {
 		for index, manager := range mixer.managers {
-			newByte, n := manager.Read()
+			newBytes, n := manager.Read(1)
 			if n == 0 {
 				mixer.managers = remove(mixer.managers, index)
 				continue
 			}
-			data = append(data, newByte)
+			data = append(data, newBytes...)
 		}
 	
 		if len(mixer.managers) == 0 {

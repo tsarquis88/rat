@@ -7,21 +7,24 @@ import (
 
 func TestParseNoFiles(t *testing.T) {
     args := []string{"binaryName"}
-	result, err := Parse(args)
-	assert.Nil(t, result)
+	output, input, err := Parse(args)
+	assert.Empty(t, output)
+	assert.Nil(t, input)
 	assert.NotNil(t, err)
 }
 
 func TestParseOneFile(t *testing.T) {
-    args := []string{"binaryName", "filenameA"}
-	result, err := Parse(args)
-	assert.Equal(t, result, []string{"filenameA"}, "They should be equal")
+    args := []string{"binaryName", "outputFile", "filenameA"}
+	output, input, err := Parse(args)
+	assert.Equal(t, output, "outputFile", "They should be equal")
+	assert.Equal(t, input, []string{"filenameA"}, "They should be equal")
 	assert.Nil(t, err)
 }
 
 func TestParseMultipleFiles(t *testing.T) {
-    args := []string{"binaryName", "filenameA", "filenameB", "filenameC"}
-	result, err := Parse(args)
-	assert.Equal(t, result, []string{"filenameA", "filenameB", "filenameC"}, "They should be equal")
+    args := []string{"binaryName", "outputFile", "filenameA", "filenameB", "filenameC"}
+	output, input, err := Parse(args)
+	assert.Equal(t, output, "outputFile", "They should be equal")
+	assert.Equal(t, input, []string{"filenameA", "filenameB", "filenameC"}, "They should be equal")
 	assert.Nil(t, err)
 }

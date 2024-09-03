@@ -2,21 +2,21 @@ module example.com/main
 
 go 1.23.0
 
-replace example.com/cmdLineParser => ../cmdLineParser
+replace example.com/cmdLineParser => ../../pkg/cmdLineParser
 
-replace example.com/mixer => ../mixer
+replace example.com/mixer => ../../pkg/mixer
 
-replace example.com/demixer => ../demixer
+replace example.com/demixer => ../../pkg/demixer
 
-replace example.com/dataBytesFileManager => ../dataBytesFileManager
+replace example.com/dataBytesFileManager => ../../pkg/dataBytesFileManager
 
-replace example.com/dataBytesManager => ../dataBytesManager
+replace example.com/dataBytesManager => ../../pkg/dataBytesManager
 
-replace example.com/dataBytesDumper => ../dataBytesDumper
+replace example.com/dataBytesDumper => ../../pkg/dataBytesDumper
 
-replace example.com/metadataManager => ../metadataManager
+replace example.com/metadataManager => ../../pkg/metadataManager
 
-replace example.com/dataBytesManagerMock => ../dataBytesManagerMock
+replace example.com/dataBytesManagerMock => ../../pkg/dataBytesManagerMock
 
 require (
 	example.com/cmdLineParser v0.0.0-00010101000000-000000000000

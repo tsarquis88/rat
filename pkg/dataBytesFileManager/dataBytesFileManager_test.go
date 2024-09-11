@@ -36,19 +36,19 @@ func (suite *DataBytesFileManagerTestSuite) TestRead() {
 	manager := NewDataBytesFileManager(TestFileA)
 
 	dataA, bytesReadA := manager.Read(1)
-	assert.Equal(suite.T(), bytesReadA, 1)
-	assert.Equal(suite.T(), dataA, uint8('1'))
+	assert.Equal(suite.T(), 1, bytesReadA)
+	assert.Equal(suite.T(), []byte{'1'}, dataA)
 
 	dataB, bytesReadB := manager.Read(1)
-	assert.Equal(suite.T(), bytesReadB, 1)
-	assert.Equal(suite.T(), dataB, uint8('2'))
+	assert.Equal(suite.T(), 1, bytesReadB)
+	assert.Equal(suite.T(), []byte{'2'}, dataB)
 
 	dataC, bytesReadC := manager.Read(1)
-	assert.Equal(suite.T(), bytesReadC, 1)
-	assert.Equal(suite.T(), dataC, uint8('3'))
+	assert.Equal(suite.T(), 1, bytesReadC)
+	assert.Equal(suite.T(), []byte{'3'}, dataC)
 
 	_, bytesReadD := manager.Read(1)
-	assert.Equal(suite.T(), bytesReadD, 0)
+	assert.Equal(suite.T(), 0, bytesReadD)
 }
 
 func TestDataBytesFileManagerTestSuite(t *testing.T) {

@@ -1,22 +1,22 @@
 package mixer
 
 import (
-	"example.com/dataBytesManager"
+	"github.com/tsarquis88/file_mixer/pkg/dataBytesManager"
 )
 
 type mixer struct {
 	managers []dataBytesManager.IDataBytesManager
 }
 
-func NewMixer(managers []dataBytesManager.IDataBytesManager) (mixer) {
-	return mixer {managers}
+func NewMixer(managers []dataBytesManager.IDataBytesManager) mixer {
+	return mixer{managers}
 }
 
 func remove(slice []dataBytesManager.IDataBytesManager, s int) []dataBytesManager.IDataBytesManager {
 	if len(slice) == 1 {
 		return []dataBytesManager.IDataBytesManager{}
 	}
-    return append(slice[:s], slice[s+1:]...)
+	return append(slice[:s], slice[s+1:]...)
 }
 
 func (mixer mixer) Mix() (mixedData []byte) {
@@ -31,7 +31,7 @@ func (mixer mixer) Mix() (mixedData []byte) {
 			}
 			data = append(data, newBytes...)
 		}
-	
+
 		if len(mixer.managers) == 0 {
 			break
 		}
@@ -39,4 +39,3 @@ func (mixer mixer) Mix() (mixedData []byte) {
 
 	return data
 }
-

@@ -1,11 +1,11 @@
 package dataBytesManagerMock
 
 type DataBytesManagerMock struct {
-	idx uint
+	idx       uint
 	dataBytes []byte
 }
 
-func NewDataBytesManagerMock(data []byte) (*DataBytesManagerMock) {
+func NewDataBytesManagerMock(data []byte) *DataBytesManagerMock {
 	return &DataBytesManagerMock{0, data}
 }
 

@@ -1,11 +1,12 @@
 package metadataManager
 
 import (
-	"testing"
+	"encoding/binary"
+	"github.com/tsarquis88/file_mixer/pkg/dataBytesManagerMock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
-	"encoding/binary"
+	"testing"
 )
 
 const OutputFolder = "/tmp/MetadataGeneratorTestSuite"
@@ -15,7 +16,7 @@ const TestFileA = OutputFolder + "/" + FileNameA
 const TestFileB = OutputFolder + "/" + FileNameB
 
 type MetadataGeneratorTestSuite struct {
-    suite.Suite
+	suite.Suite
 }
 
 func (suite *MetadataGeneratorTestSuite) SetupTest() {
@@ -46,7 +47,7 @@ func (suite *MetadataGeneratorTestSuite) TestGenerateMultipleFiles() {
 }
 
 func (suite *MetadataGeneratorTestSuite) TestGenerateInexistantFilePanics() {
-	assert.Panics(suite.T(), func() {Generate([]string{TestFileA})}, "Should panic")
+	assert.Panics(suite.T(), func() { Generate([]string{TestFileA}) }, "Should panic")
 }
 
 // Dump()
@@ -83,7 +84,7 @@ func (suite *MetadataGeneratorTestSuite) TestDumpMultipleFiles() {
 	expectedFileSizeB[0] = 3
 	expectedFileModeB := make([]byte, 4)
 	binary.LittleEndian.PutUint32(expectedFileModeB, uint32(0755))
-	
+
 	var expectedDump []byte
 	expectedDump = append(expectedDump, byte(2))
 	expectedDump = append(expectedDump, byte(len(FileNameA)))
@@ -115,12 +116,12 @@ func (suite *MetadataGeneratorTestSuite) TestParseOneMetadata() {
 	dump = append(dump, []byte(FileNameA)...)
 	dump = append(dump, expectedFileSize...)
 	dump = append(dump, expectedFileMode...)
-	expectedReadBytes := len(dump)
 	dump = append(dump, []byte("Unread data")...)
 
-	metadatas, bytes := Parse(dump)
+	dataBytesManager := dataBytesManagerMock.NewDataBytesManagerMock(dump)
+
+	metadatas := Parse(dataBytesManager)
 	assert.Equal(suite.T(), expectedMetadatas, metadatas)
-	assert.Equal(suite.T(), expectedReadBytes, bytes)
 }
 
 func (suite *MetadataGeneratorTestSuite) TestParseMultipleMetadatas() {
@@ -148,14 +149,14 @@ func (suite *MetadataGeneratorTestSuite) TestParseMultipleMetadatas() {
 	dump = append(dump, []byte(FileNameB)...)
 	dump = append(dump, expectedFileSizeB...)
 	dump = append(dump, expectedFileModeB...)
-	expectedReadBytes := len(dump)
 	dump = append(dump, []byte("Unread data")...)
 
-	metadatas, bytes := Parse(dump)
+	dataBytesManager := dataBytesManagerMock.NewDataBytesManagerMock(dump)
+
+	metadatas := Parse(dataBytesManager)
 	assert.Equal(suite.T(), expectedMetadatas, metadatas)
-	assert.Equal(suite.T(), expectedReadBytes, bytes)
 }
 
 func TestMetadataGeneratorTestSuite(t *testing.T) {
-    suite.Run(t, new(MetadataGeneratorTestSuite))
+	suite.Run(t, new(MetadataGeneratorTestSuite))
 }

@@ -1,10 +1,10 @@
 package dataBytesFileManager
 
 import (
-	"testing"
-	"os"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"os"
+	"testing"
 )
 
 const OutputFolder = "/tmp/DataBytesFileManagerTestSuite"
@@ -12,7 +12,7 @@ const TestFileA = OutputFolder + "/fileA"
 const TestFileB = OutputFolder + "/fileB" // Won't be created
 
 type DataBytesFileManagerTestSuite struct {
-    suite.Suite
+	suite.Suite
 }
 
 func (suite *DataBytesFileManagerTestSuite) SetupTest() {
@@ -25,11 +25,11 @@ func (suite *DataBytesFileManagerTestSuite) TearDownTest() {
 }
 
 func (suite *DataBytesFileManagerTestSuite) TestNew() {
-	assert.NotPanics(suite.T(), func() {NewDataBytesFileManager(TestFileA)}, "Should not panic")
+	assert.NotPanics(suite.T(), func() { NewDataBytesFileManager(TestFileA) }, "Should not panic")
 }
 
 func (suite *DataBytesFileManagerTestSuite) TestNewInexistantFile() {
-	assert.Panics(suite.T(), func() {NewDataBytesFileManager(TestFileB)}, "Should panic")
+	assert.Panics(suite.T(), func() { NewDataBytesFileManager(TestFileB) }, "Should panic")
 }
 
 func (suite *DataBytesFileManagerTestSuite) TestRead() {
@@ -41,7 +41,7 @@ func (suite *DataBytesFileManagerTestSuite) TestRead() {
 
 	dataB, bytesReadB := manager.Read(1)
 	assert.Equal(suite.T(), bytesReadB, 1)
-	assert.Equal(suite.T(), dataB, uint8('2'))	
+	assert.Equal(suite.T(), dataB, uint8('2'))
 
 	dataC, bytesReadC := manager.Read(1)
 	assert.Equal(suite.T(), bytesReadC, 1)
@@ -52,5 +52,5 @@ func (suite *DataBytesFileManagerTestSuite) TestRead() {
 }
 
 func TestDataBytesFileManagerTestSuite(t *testing.T) {
-    suite.Run(t, new(DataBytesFileManagerTestSuite))
+	suite.Run(t, new(DataBytesFileManagerTestSuite))
 }

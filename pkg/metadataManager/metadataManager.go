@@ -2,17 +2,18 @@ package metadataManager
 
 import (
 	"encoding/binary"
+	"github.com/tsarquis88/file_mixer/pkg/dataBytesManager"
 	"os"
 	"path/filepath"
 )
 
 type Metadata struct {
 	Filename string
-	Size int64
-	Mode uint32
+	Size     int64
+	Mode     uint32
 }
 
-func Generate(files []string) ([]Metadata) {
+func Generate(files []string) []Metadata {
 	var metadatas []Metadata
 	for _, filename := range files {
 		fileHandle, err := os.OpenFile(filename, os.O_RDONLY, 0755)
@@ -23,7 +24,7 @@ func Generate(files []string) ([]Metadata) {
 		if statErr != nil {
 			panic(statErr)
 		}
-		metadatas = append(metadatas, Metadata {filepath.Base(filename), stat.Size(), uint32(stat.Mode())})
+		metadatas = append(metadatas, Metadata{filepath.Base(filename), stat.Size(), uint32(stat.Mode())})
 	}
 	return metadatas
 }
@@ -48,32 +49,23 @@ func Dump(metadatas []Metadata) []byte {
 	return metadatasDump
 }
 
-func Parse(dump []byte) ([]Metadata, int) {
+func Parse(dataBytesSource dataBytesManager.IDataBytesManager) []Metadata {
 	var metadatas []Metadata
 
-	metadatasQty := dump[0]
-	parsedMetadatas := 0 
+	metadatasQty, _ := dataBytesSource.Read(1)
+	parsedMetadatas := 0
 
-	idx := 1
 	for {
-		filenameSize := int(dump[idx])
-		idx = idx + 1
-
-		filename := dump[idx:idx+filenameSize]
-		idx = idx + filenameSize
-
-		fileSize := dump[idx:idx+8]
-		idx = idx + 8
-
-		fileMode := dump[idx:idx+4]
-		idx = idx + 4
-
+		filenameSize, _ := dataBytesSource.Read(1)
+		filename, _ := dataBytesSource.Read(uint(filenameSize[0]))
+		fileSize, _ := dataBytesSource.Read(8)
+		fileMode, _ := dataBytesSource.Read(4)
 		metadatas = append(metadatas, Metadata{string(filename), int64(binary.LittleEndian.Uint64(fileSize)), uint32(binary.LittleEndian.Uint32(fileMode))})
 
 		parsedMetadatas++
-		if parsedMetadatas == int(metadatasQty) {
+		if parsedMetadatas == int(metadatasQty[0]) {
 			break
 		}
 	}
-	return metadatas, idx
+	return metadatas
 }

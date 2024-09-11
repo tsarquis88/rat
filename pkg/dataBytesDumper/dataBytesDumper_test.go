@@ -1,17 +1,17 @@
 package dataBytesDumper
 
 import (
-	"testing"
-	"os"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"os"
+	"testing"
 )
 
 const OutputFolder = "/tmp/DataBytesDumperTestSuite"
 const TestFileA = OutputFolder + "/fileA"
 
 type DataBytesDumperTestSuite struct {
-    suite.Suite
+	suite.Suite
 }
 
 func (suite *DataBytesDumperTestSuite) SetupTest() {
@@ -23,11 +23,11 @@ func (suite *DataBytesDumperTestSuite) TearDownTest() {
 }
 
 func (suite *DataBytesDumperTestSuite) TestNew() {
-	assert.NotPanics(suite.T(), func() {NewDataBytesDumper(TestFileA)}, "Should not panic")
+	assert.NotPanics(suite.T(), func() { NewDataBytesDumper(TestFileA) }, "Should not panic")
 }
 
 func (suite *DataBytesDumperTestSuite) TestDump() {
-	data := []byte {'1', '2', '3'}
+	data := []byte{'1', '2', '3'}
 	NewDataBytesDumper(TestFileA).Dump(data)
 
 	file, err := os.OpenFile(TestFileA, os.O_RDONLY, 0755)
@@ -44,5 +44,5 @@ func (suite *DataBytesDumperTestSuite) TestDump() {
 }
 
 func TestDataBytesDumperTestSuite(t *testing.T) {
-    suite.Run(t, new(DataBytesDumperTestSuite))
+	suite.Run(t, new(DataBytesDumperTestSuite))
 }

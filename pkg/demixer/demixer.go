@@ -1,24 +1,23 @@
 package demixer
 
 import (
-	"example.com/dataBytesManager"
-	"example.com/metadataManager"
+	"github.com/tsarquis88/file_mixer/pkg/dataBytesManager"
+	"github.com/tsarquis88/file_mixer/pkg/metadataManager"
 )
 
 type DemixData struct {
 	Filename string
-	Data []byte
-	Mode uint32
+	Data     []byte
+	Mode     uint32
 }
 
 type demixDataInternal struct {
-	demixData DemixData
+	demixData    DemixData
 	missingBytes int
 }
 
 func Demix(dataBytesSource dataBytesManager.IDataBytesManager) []DemixData {
-	readData, _ := dataBytesSource.Read(1024*10)
-	metadatas, metadataEndByte := metadataManager.Parse(readData)
+	metadatas := metadataManager.Parse(dataBytesSource)
 
 	var filesDemixData []demixDataInternal
 	for _, metadata := range metadatas {
@@ -26,21 +25,20 @@ func Demix(dataBytesSource dataBytesManager.IDataBytesManager) []DemixData {
 	}
 
 	fileIdx := 0
-	byteIdx := metadataEndByte
 	filesQty := len(metadatas)
 	parsedFiles := 0
 	for {
 		if filesDemixData[fileIdx].missingBytes > 0 {
-			filesDemixData[fileIdx].demixData.Data = append(filesDemixData[fileIdx].demixData.Data, readData[byteIdx])
+			newByte, _ := dataBytesSource.Read(1)
+			filesDemixData[fileIdx].demixData.Data = append(filesDemixData[fileIdx].demixData.Data, newByte[0])
 			filesDemixData[fileIdx].missingBytes--
-			
+
 			if filesDemixData[fileIdx].missingBytes == 0 {
 				parsedFiles++
 				if parsedFiles >= filesQty {
 					break
 				}
 			}
-			byteIdx++	
 		}
 
 		fileIdx++
@@ -55,4 +53,3 @@ func Demix(dataBytesSource dataBytesManager.IDataBytesManager) []DemixData {
 	}
 	return demixDataFinal
 }
-

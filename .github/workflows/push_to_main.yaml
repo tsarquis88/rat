@@ -1,0 +1,23 @@
+name: Go
+
+on:
+  push:
+
+jobs:
+  build-and-test:
+     
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: Build cmd
+      run: cd cmd/fileMixer/ && go test -v && go build -v
+
+    - name: Test packages
+      run: cd ../../pkg/midem/ && go test -v

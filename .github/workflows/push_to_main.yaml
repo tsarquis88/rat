@@ -17,7 +17,7 @@ jobs:
         go-version: '1.23'
 
     - name: Build cmd
-      run: cd cmd/fileMixer/ && go test -v && go build -v
+      run: cd cmd/fileMixer/ && go mod tidy && go test -v && go build -v
 
     - name: Test packages
-      run: cd ../../pkg/midem/ && go test -v
+      run: cd ../../pkg/midem/ && go mod tidy && go test -v

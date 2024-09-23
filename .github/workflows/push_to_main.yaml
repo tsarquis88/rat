@@ -20,7 +20,7 @@ jobs:
       run: cd cmd/fileMixer/ && go mod tidy && go build -v
 
     - name: Test fileMixer package
-      run: cd ../../pkg/midem/ && go mod tidy && go test -v
+      run: cd pkg/midem/ && go mod tidy && go test -v
 
     - name: Test cmdLineParser package
-      run: cd ../cmdLineParser/ && go mod tidy && go test -v
+      run: cd pkg/cmdLineParser/ && go mod tidy && go test -v

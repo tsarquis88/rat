@@ -1,20 +1,16 @@
-package mixer
-
-import (
-	"github.com/tsarquis88/file_mixer/pkg/dataBytesManager"
-)
+package midem
 
 type mixer struct {
-	managers []dataBytesManager.IDataBytesManager
+	managers []IDataBytesManager
 }
 
-func NewMixer(managers []dataBytesManager.IDataBytesManager) mixer {
+func NewMixer(managers []IDataBytesManager) mixer {
 	return mixer{managers}
 }
 
-func remove(slice []dataBytesManager.IDataBytesManager, s int) []dataBytesManager.IDataBytesManager {
+func remove(slice []IDataBytesManager, s int) []IDataBytesManager {
 	if len(slice) == 1 {
-		return []dataBytesManager.IDataBytesManager{}
+		return []IDataBytesManager{}
 	}
 	return append(slice[:s], slice[s+1:]...)
 }

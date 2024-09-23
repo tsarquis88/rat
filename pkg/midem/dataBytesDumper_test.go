@@ -1,4 +1,4 @@
-package dataBytesDumper
+package midem
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -7,30 +7,29 @@ import (
 	"testing"
 )
 
-const OutputFolder = "/tmp/DataBytesDumperTestSuite"
-const TestFileA = OutputFolder + "/fileA"
-
 type DataBytesDumperTestSuite struct {
 	suite.Suite
+	outputFolder string
+	testFileA    string
 }
 
 func (suite *DataBytesDumperTestSuite) SetupTest() {
-	os.Mkdir(OutputFolder, 0755)
+	os.Mkdir(suite.outputFolder, 0755)
 }
 
 func (suite *DataBytesDumperTestSuite) TearDownTest() {
-	os.RemoveAll(OutputFolder)
+	os.RemoveAll(suite.outputFolder)
 }
 
 func (suite *DataBytesDumperTestSuite) TestNew() {
-	assert.NotPanics(suite.T(), func() { NewDataBytesDumper(TestFileA) }, "Should not panic")
+	assert.NotPanics(suite.T(), func() { NewDataBytesDumper(suite.testFileA) }, "Should not panic")
 }
 
 func (suite *DataBytesDumperTestSuite) TestDump() {
 	data := []byte{'1', '2', '3'}
-	NewDataBytesDumper(TestFileA).Dump(data)
+	NewDataBytesDumper(suite.testFileA).Dump(data)
 
-	file, err := os.OpenFile(TestFileA, os.O_RDONLY, 0755)
+	file, err := os.OpenFile(suite.testFileA, os.O_RDONLY, 0755)
 	if err != nil {
 		panic(err)
 	}
@@ -44,5 +43,9 @@ func (suite *DataBytesDumperTestSuite) TestDump() {
 }
 
 func TestDataBytesDumperTestSuite(t *testing.T) {
-	suite.Run(t, new(DataBytesDumperTestSuite))
+	const OutputFolder = "/tmp/DataBytesDumperTestSuite"
+	var testSuite DataBytesDumperTestSuite
+	testSuite.outputFolder = OutputFolder
+	testSuite.testFileA = OutputFolder + "/fileA"
+	suite.Run(t, &testSuite)
 }

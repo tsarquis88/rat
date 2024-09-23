@@ -1,4 +1,4 @@
-package dataBytesDumper
+package midem
 
 import (
 	"os"

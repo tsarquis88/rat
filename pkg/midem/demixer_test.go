@@ -1,8 +1,7 @@
-package demixer
+package midem
 
 import (
 	"encoding/binary"
-	"github.com/tsarquis88/file_mixer/pkg/dataBytesManagerMock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -23,7 +22,7 @@ func TestDemixOneFile(t *testing.T) {
 	var expectedDemixData []DemixData
 	expectedDemixData = append(expectedDemixData, DemixData{"filename", []byte("1234567890"), uint32(binary.LittleEndian.Uint32(fileMode))})
 
-	manager := dataBytesManagerMock.NewDataBytesManagerMock(data)
+	manager := NewDataBytesManagerMock(data)
 	demixData := Demix(manager)
 
 	assert.Equal(t, expectedDemixData, demixData)
@@ -62,7 +61,7 @@ func TestDemixMultipleFiles(t *testing.T) {
 	expectedDemixData = append(expectedDemixData, DemixData{"data.xml", []byte("<details>blabla</details>"), uint32(binary.LittleEndian.Uint32(fileModeB))})
 	expectedDemixData = append(expectedDemixData, DemixData{"output.log", []byte("Something happened."), uint32(binary.LittleEndian.Uint32(fileModeC))})
 
-	manager := dataBytesManagerMock.NewDataBytesManagerMock(data)
+	manager := NewDataBytesManagerMock(data)
 	demixData := Demix(manager)
 
 	assert.Equal(t, expectedDemixData, demixData)

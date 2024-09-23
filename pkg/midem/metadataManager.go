@@ -1,8 +1,7 @@
-package metadataManager
+package midem
 
 import (
 	"encoding/binary"
-	"github.com/tsarquis88/file_mixer/pkg/dataBytesManager"
 	"os"
 	"path/filepath"
 )
@@ -49,7 +48,7 @@ func Dump(metadatas []Metadata) []byte {
 	return metadatasDump
 }
 
-func Parse(dataBytesSource dataBytesManager.IDataBytesManager) []Metadata {
+func Parse(dataBytesSource IDataBytesManager) []Metadata {
 	var metadatas []Metadata
 
 	metadatasQty, _ := dataBytesSource.Read(1)

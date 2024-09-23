@@ -5,13 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tsarquis88/file_mixer/pkg/cmdLineParser"
-	"github.com/tsarquis88/file_mixer/pkg/dataBytesDumper"
-	"github.com/tsarquis88/file_mixer/pkg/dataBytesFileManager"
-	"github.com/tsarquis88/file_mixer/pkg/dataBytesManager"
-	"github.com/tsarquis88/file_mixer/pkg/demixer"
-	"github.com/tsarquis88/file_mixer/pkg/metadataManager"
-	"github.com/tsarquis88/file_mixer/pkg/mixer"
+	"github.com/tsarquis88/file_mixer/pkg/midem"
 )
 
 func mix(filesList []string) {
@@ -20,19 +14,19 @@ func mix(filesList []string) {
 
 	fmt.Printf("Mix: %s\n", inputFiles)
 
-	var managers []dataBytesManager.IDataBytesManager
+	var managers []midem.IDataBytesManager
 	for _, file := range inputFiles {
-		managers = append(managers, dataBytesFileManager.NewDataBytesFileManager(file))
+		managers = append(managers, midem.NewDataBytesFileManager(file))
 	}
 
-	dumpData := metadataManager.Dump(metadataManager.Generate(inputFiles))
-	dumpData = append(dumpData, mixer.NewMixer(managers).Mix()...)
+	dumpData := midem.Dump(midem.Generate(inputFiles))
+	dumpData = append(dumpData, midem.NewMixer(managers).Mix()...)
 
 	if _, err := os.Stat(outputFile); !errors.Is(err, os.ErrNotExist) {
 		panic("Output file exists")
 	}
 
-	dataBytesDumper.NewDataBytesDumper(outputFile).Dump(dumpData)
+	midem.NewDataBytesDumper(outputFile).Dump(dumpData)
 
 	fmt.Printf("Files mixed into: %s\n", outputFile)
 }
@@ -41,9 +35,9 @@ func demix(filesList []string) {
 	for _, inputFile := range filesList {
 		fmt.Printf("Demix: %s\n", inputFile)
 
-		fileManager := dataBytesFileManager.NewDataBytesFileManager(inputFile)
+		fileManager := midem.NewDataBytesFileManager(inputFile)
 
-		for _, demixData := range demixer.Demix(fileManager) {
+		for _, demixData := range midem.Demix(fileManager) {
 			fmt.Printf("Writing file %s\n", demixData.Filename)
 			os.WriteFile(demixData.Filename, demixData.Data, os.FileMode(demixData.Mode))
 		}
@@ -52,7 +46,7 @@ func demix(filesList []string) {
 
 func main() {
 	// Parse arguments
-	performMix, files := cmdLineParser.Parse(os.Args)
+	performMix, files := Parse(os.Args)
 
 	if performMix {
 		mix(files)

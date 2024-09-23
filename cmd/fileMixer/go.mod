@@ -1,18 +1,16 @@
-module github.com/tsarquis88/file_mixer/main
+module main
 
 go 1.23.0
 
+replace github.com/tsarquis88/file_mixer/pkg/midem => ../../pkg/midem
+
 require (
-	github.com/tsarquis88/file_mixer/pkg/cmdLineParser v0.0.0-20240911201137-3336c6f3eb6a
-	github.com/tsarquis88/file_mixer/pkg/dataBytesDumper v0.0.0-20240911201137-3336c6f3eb6a
-	github.com/tsarquis88/file_mixer/pkg/dataBytesFileManager v0.0.0-20240911201137-3336c6f3eb6a
-	github.com/tsarquis88/file_mixer/pkg/dataBytesManager v0.0.0-20240911201137-3336c6f3eb6a
-	github.com/tsarquis88/file_mixer/pkg/demixer v0.0.0-20240911201137-3336c6f3eb6a
-	github.com/tsarquis88/file_mixer/pkg/metadataManager v0.0.0-20240911201137-3336c6f3eb6a
-	github.com/tsarquis88/file_mixer/pkg/mixer v0.0.0-20240911201137-3336c6f3eb6a
+	github.com/stretchr/testify v1.9.0
+	github.com/tsarquis88/file_mixer/pkg/midem v0.0.0-00010101000000-000000000000
 )
 
 require (
-	github.com/stretchr/testify v1.9.0 // indirect
-	github.com/tsarquis88/file_mixer/pkg/dataBytesManagerMock v0.0.0-20240911201137-3336c6f3eb6a // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

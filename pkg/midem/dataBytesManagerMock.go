@@ -1,4 +1,4 @@
-package dataBytesManagerMock
+package midem
 
 type DataBytesManagerMock struct {
 	idx       uint

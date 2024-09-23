@@ -1,4 +1,4 @@
-package dataBytesFileManager
+package midem
 
 import (
 	"errors"

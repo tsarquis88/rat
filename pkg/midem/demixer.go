@@ -1,9 +1,4 @@
-package demixer
-
-import (
-	"github.com/tsarquis88/file_mixer/pkg/dataBytesManager"
-	"github.com/tsarquis88/file_mixer/pkg/metadataManager"
-)
+package midem
 
 type DemixData struct {
 	Filename string
@@ -16,8 +11,8 @@ type demixDataInternal struct {
 	missingBytes int
 }
 
-func Demix(dataBytesSource dataBytesManager.IDataBytesManager) []DemixData {
-	metadatas := metadataManager.Parse(dataBytesSource)
+func Demix(dataBytesSource IDataBytesManager) []DemixData {
+	metadatas := Parse(dataBytesSource)
 
 	var filesDemixData []demixDataInternal
 	for _, metadata := range metadatas {

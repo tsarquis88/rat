@@ -1,4 +1,4 @@
-package dataBytesFileManager
+package midem
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -7,33 +7,32 @@ import (
 	"testing"
 )
 
-const OutputFolder = "/tmp/DataBytesFileManagerTestSuite"
-const TestFileA = OutputFolder + "/fileA"
-const TestFileB = OutputFolder + "/fileB" // Won't be created
-
 type DataBytesFileManagerTestSuite struct {
 	suite.Suite
+	outputFolder string
+	testFileA    string
+	testFileB    string
 }
 
 func (suite *DataBytesFileManagerTestSuite) SetupTest() {
-	os.Mkdir(OutputFolder, 0755)
-	os.WriteFile(TestFileA, []byte("123"), 0755)
+	os.Mkdir(suite.outputFolder, 0755)
+	os.WriteFile(suite.testFileA, []byte("123"), 0755)
 }
 
 func (suite *DataBytesFileManagerTestSuite) TearDownTest() {
-	os.RemoveAll(OutputFolder)
+	os.RemoveAll(suite.outputFolder)
 }
 
 func (suite *DataBytesFileManagerTestSuite) TestNew() {
-	assert.NotPanics(suite.T(), func() { NewDataBytesFileManager(TestFileA) }, "Should not panic")
+	assert.NotPanics(suite.T(), func() { NewDataBytesFileManager(suite.testFileA) }, "Should not panic")
 }
 
 func (suite *DataBytesFileManagerTestSuite) TestNewInexistantFile() {
-	assert.Panics(suite.T(), func() { NewDataBytesFileManager(TestFileB) }, "Should panic")
+	assert.Panics(suite.T(), func() { NewDataBytesFileManager(suite.testFileB) }, "Should panic")
 }
 
 func (suite *DataBytesFileManagerTestSuite) TestRead() {
-	manager := NewDataBytesFileManager(TestFileA)
+	manager := NewDataBytesFileManager(suite.testFileA)
 
 	dataA, bytesReadA := manager.Read(1)
 	assert.Equal(suite.T(), 1, bytesReadA)
@@ -52,5 +51,11 @@ func (suite *DataBytesFileManagerTestSuite) TestRead() {
 }
 
 func TestDataBytesFileManagerTestSuite(t *testing.T) {
-	suite.Run(t, new(DataBytesFileManagerTestSuite))
+	const OutputFolder = "/tmp/DataBytesFileManagerTestSuite"
+	var testSuite DataBytesFileManagerTestSuite
+	testSuite.outputFolder = OutputFolder
+	testSuite.testFileA = OutputFolder + "/fileA"
+	testSuite.testFileB = OutputFolder + "/fileB"
+
+	suite.Run(t, &testSuite)
 }

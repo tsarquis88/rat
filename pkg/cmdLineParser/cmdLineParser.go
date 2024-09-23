@@ -1,4 +1,4 @@
-package main
+package cmdLineParser
 
 func remove(slice []string, s int) []string {
 	if len(slice) == 1 {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/tsarquis88/file_mixer/pkg/cmdLineParser"
 	"github.com/tsarquis88/file_mixer/pkg/midem"
 )
 
@@ -46,7 +47,7 @@ func demix(filesList []string) {
 
 func main() {
 	// Parse arguments
-	performMix, files := Parse(os.Args)
+	performMix, files := cmdLineParser.Parse(os.Args)
 
 	if performMix {
 		mix(files)

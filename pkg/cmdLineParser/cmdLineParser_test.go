@@ -1,4 +1,4 @@
-package main
+package cmdLineParser
 
 import (
 	"github.com/stretchr/testify/assert"

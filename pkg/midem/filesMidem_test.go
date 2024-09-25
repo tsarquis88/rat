@@ -23,19 +23,29 @@ func (suite *FilesMidemTestSuite) TearDownTest() {
 	os.RemoveAll(suite.outputFolder)
 }
 
-func (suite *FilesMidemTestSuite) TestMix() {
-	inputFiles, err := os.ReadDir(suite.inputFolder)
+func (suite *FilesMidemTestSuite) TestMixAndDemix() {
+	dirHandle, err := os.ReadDir(suite.inputFolder)
 	if err != nil {
 		panic(err)
 	}
 
-	files := []string{suite.outputFile}
-	for _, file := range inputFiles {
-		files = append(files, suite.inputFolder+"/"+file.Name())
+	originalFiles := make(map[string][]byte)
+	var inputFiles []string
+	for _, file := range dirHandle {
+		filePath := suite.inputFolder + "/" + file.Name()
+		originalFiles[file.Name()] = HashFile(filePath)
+		inputFiles = append(inputFiles, filePath)
 	}
 
-	MixFiles(files)
+	MixFiles(inputFiles, suite.outputFile)
 	assert.Equal(suite.T(), true, FileExists(suite.outputFile))
+
+	DemixFiles([]string{suite.outputFile}, suite.outputFolder)
+	for file, hash := range originalFiles {
+		filepath := suite.outputFolder + "/" + file
+		assert.Equal(suite.T(), true, FileExists(filepath))
+		assert.Equal(suite.T(), hash, HashFile(filepath))
+	}
 }
 
 func TestFilesMidemTestSuite(t *testing.T) {

@@ -12,8 +12,8 @@ func main() {
 	performMix, files := cmdLineParser.Parse(os.Args)
 
 	if performMix {
-		midem.MixFiles(files)
+		midem.MixFiles(files[1:], files[0])
 	} else {
-		midem.DemixFiles(files)
+		midem.DemixFiles(files, ".")
 	}
 }

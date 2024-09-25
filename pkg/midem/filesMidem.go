@@ -5,10 +5,7 @@ import (
 	"os"
 )
 
-func MixFiles(filesList []string) {
-	inputFiles := filesList[1:]
-	outputFile := filesList[0]
-
+func MixFiles(inputFiles []string, outputFile string) {
 	fmt.Printf("Mix: %s\n", inputFiles)
 
 	var managers []IDataBytesManager
@@ -28,7 +25,7 @@ func MixFiles(filesList []string) {
 	fmt.Printf("Files mixed into: %s\n", outputFile)
 }
 
-func DemixFiles(filesList []string) {
+func DemixFiles(filesList []string, outputFolder string) {
 	for _, inputFile := range filesList {
 		fmt.Printf("Demix: %s\n", inputFile)
 
@@ -36,7 +33,7 @@ func DemixFiles(filesList []string) {
 
 		for _, demixData := range Demix(fileManager) {
 			fmt.Printf("Writing file %s\n", demixData.Filename)
-			os.WriteFile(demixData.Filename, demixData.Data, os.FileMode(demixData.Mode))
+			os.WriteFile(outputFolder+"/"+demixData.Filename, demixData.Data, os.FileMode(demixData.Mode))
 		}
 	}
 }

@@ -24,3 +24,11 @@ func HashFile(filepath string) []byte {
 	}
 	return h.Sum(nil)
 }
+
+func IsDir(filePath string) bool {
+	fi, err := os.Stat(filePath)
+	if err != nil {
+		panic(err)
+	}
+	return fi.Mode().IsDir()
+}

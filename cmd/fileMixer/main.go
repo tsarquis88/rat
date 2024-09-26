@@ -14,6 +14,6 @@ func main() {
 	if performMix {
 		midem.MixFiles(files[1:], files[0])
 	} else {
-		midem.DemixFiles(files, ".")
+		midem.DemixFiles(files, "")
 	}
 }

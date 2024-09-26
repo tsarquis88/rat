@@ -24,15 +24,15 @@ func (suite *DataBytesFileManagerTestSuite) TearDownTest() {
 }
 
 func (suite *DataBytesFileManagerTestSuite) TestNew() {
-	assert.NotPanics(suite.T(), func() { NewDataBytesFileManager(suite.testFileA) }, "Should not panic")
+	assert.NotPanics(suite.T(), func() { NewDataBytesFileManager(suite.testFileA, "") }, "Should not panic")
 }
 
 func (suite *DataBytesFileManagerTestSuite) TestNewInexistantFile() {
-	assert.Panics(suite.T(), func() { NewDataBytesFileManager(suite.testFileB) }, "Should panic")
+	assert.Panics(suite.T(), func() { NewDataBytesFileManager(suite.testFileB, "") }, "Should panic")
 }
 
 func (suite *DataBytesFileManagerTestSuite) TestRead() {
-	manager := NewDataBytesFileManager(suite.testFileA)
+	manager := NewDataBytesFileManager(suite.testFileA, "")
 
 	dataA, bytesReadA := manager.Read(1)
 	assert.Equal(suite.T(), 1, bytesReadA)

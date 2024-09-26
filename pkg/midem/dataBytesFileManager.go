@@ -8,15 +8,16 @@ import (
 
 type DataBytesFileManager struct {
 	filename   string
+	originDir  string
 	fileHandle os.File
 }
 
-func NewDataBytesFileManager(filename string) DataBytesFileManager {
+func NewDataBytesFileManager(filename string, originDir string) DataBytesFileManager {
 	fileHandle, err := os.OpenFile(filename, os.O_RDONLY, 0755)
 	if err != nil {
 		panic(err)
 	}
-	return DataBytesFileManager{filename, *fileHandle}
+	return DataBytesFileManager{filename, originDir, *fileHandle}
 }
 
 func (manager DataBytesFileManager) Read(bytesQty uint) ([]byte, int) {
@@ -26,4 +27,12 @@ func (manager DataBytesFileManager) Read(bytesQty uint) ([]byte, int) {
 		panic(err)
 	}
 	return buff, readBytes
+}
+
+func (manager DataBytesFileManager) Name() string {
+	return manager.filename
+}
+
+func (manager DataBytesFileManager) Origin() string {
+	return manager.originDir
 }

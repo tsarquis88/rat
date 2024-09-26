@@ -3,17 +3,56 @@ package midem
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 )
+
+func CreateDirManagers(dirPath string, originDir string) []IDataBytesManager {
+	dirHandle, err := os.ReadDir(dirPath)
+	if err != nil {
+		panic(err)
+	}
+
+	var managers []IDataBytesManager
+	for _, file := range dirHandle {
+		pathWithDir := dirPath + "/" + file.Name()
+		if IsDir(pathWithDir) {
+			managers = append(managers, CreateDirManagers(pathWithDir, originDir)...)
+		} else {
+			managers = append(managers, NewDataBytesFileManager(pathWithDir, originDir))
+		}
+	}
+	return managers
+}
 
 func MixFiles(inputFiles []string, outputFile string) {
 	fmt.Printf("Mix: %s\n", inputFiles)
 
 	var managers []IDataBytesManager
 	for _, file := range inputFiles {
-		managers = append(managers, NewDataBytesFileManager(file))
+		if IsDir(file) {
+			fmt.Printf("Folder will be mixed: %s\n", file)
+			fileWithoutSlash := strings.TrimSuffix(file, "/")
+
+			var originDir string
+			if filepath.Dir(fileWithoutSlash) == file {
+				originDir = ""
+			} else {
+				originDir = filepath.Dir(fileWithoutSlash) + "/"
+			}
+			managers = append(managers, CreateDirManagers(fileWithoutSlash, originDir)...)
+		} else {
+			fmt.Printf("File will be mixed: %s\n", file)
+			managers = append(managers, NewDataBytesFileManager(file, filepath.Dir(file)+"/"))
+		}
 	}
 
-	dumpData := Dump(Generate(inputFiles))
+	var filesOriginDir []MetadataInput
+	for _, manager := range managers {
+		filesOriginDir = append(filesOriginDir, MetadataInput{manager.Name(), manager.Origin()})
+	}
+
+	dumpData := Dump(Generate(filesOriginDir))
 	dumpData = append(dumpData, NewMixer(managers).Mix()...)
 
 	if FileExists(outputFile) {
@@ -29,11 +68,19 @@ func DemixFiles(filesList []string, outputFolder string) {
 	for _, inputFile := range filesList {
 		fmt.Printf("Demix: %s\n", inputFile)
 
-		fileManager := NewDataBytesFileManager(inputFile)
+		fileManager := NewDataBytesFileManager(inputFile, "")
 
 		for _, demixData := range Demix(fileManager) {
-			fmt.Printf("Writing file %s\n", demixData.Filename)
-			os.WriteFile(outputFolder+"/"+demixData.Filename, demixData.Data, os.FileMode(demixData.Mode))
+			err := os.MkdirAll(outputFolder+filepath.Dir(demixData.Filename), 0755)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("Writing file %s\n", outputFolder+demixData.Filename)
+			err = os.WriteFile(outputFolder+demixData.Filename, demixData.Data, os.FileMode(demixData.Mode))
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 }

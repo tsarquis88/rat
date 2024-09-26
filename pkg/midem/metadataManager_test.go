@@ -31,7 +31,8 @@ func (suite *MetadataGeneratorTestSuite) TestGenerateOneFile() {
 	os.WriteFile(suite.testFileA, []byte("12345"), 0755)
 
 	expectedMetadatas := []Metadata{{suite.fileNameA, 5, 0755}}
-	metadatas := Generate([]string{suite.testFileA})
+	inputFiles := []MetadataInput{{suite.testFileA, suite.outputFolder}}
+	metadatas := Generate(inputFiles)
 	assert.Equal(suite.T(), expectedMetadatas, metadatas)
 }
 
@@ -40,12 +41,27 @@ func (suite *MetadataGeneratorTestSuite) TestGenerateMultipleFiles() {
 	os.WriteFile(suite.testFileB, []byte("ABC"), 0755)
 
 	expectedMetadatas := []Metadata{{suite.fileNameA, 5, 0755}, {suite.fileNameB, 3, 0755}}
-	metadatas := Generate([]string{suite.testFileA, suite.testFileB})
+	inputFiles := []MetadataInput{{suite.testFileA, suite.outputFolder}, {suite.testFileB, suite.outputFolder}}
+	metadatas := Generate(inputFiles)
+	assert.Equal(suite.T(), expectedMetadatas, metadatas)
+}
+
+func (suite *MetadataGeneratorTestSuite) TestGenerateMultipleFilesWithOriginDir() {
+	const OriginDir = "origin/"
+	fileNameAWithOrigin := suite.outputFolder + OriginDir + suite.fileNameA
+	os.Mkdir(suite.outputFolder+"/"+OriginDir, 0755)
+	os.WriteFile(fileNameAWithOrigin, []byte("12345"), 0755)
+	os.WriteFile(suite.testFileB, []byte("ABC"), 0755)
+
+	expectedMetadatas := []Metadata{{suite.fileNameA, 5, 0755}, {suite.fileNameB, 3, 0755}}
+	inputFiles := []MetadataInput{{fileNameAWithOrigin, suite.outputFolder + OriginDir}, {suite.testFileB, suite.outputFolder}}
+	metadatas := Generate(inputFiles)
 	assert.Equal(suite.T(), expectedMetadatas, metadatas)
 }
 
 func (suite *MetadataGeneratorTestSuite) TestGenerateInexistantFilePanics() {
-	assert.Panics(suite.T(), func() { Generate([]string{suite.testFileA}) }, "Should panic")
+	inputFiles := []MetadataInput{{suite.testFileA, suite.outputFolder}}
+	assert.Panics(suite.T(), func() { Generate(inputFiles) }, "Should panic")
 }
 
 // Dump()
@@ -156,11 +172,11 @@ func (suite *MetadataGeneratorTestSuite) TestParseMultipleMetadatas() {
 }
 
 func TestMetadataGeneratorTestSuite(t *testing.T) {
-	const OutputFolder = "/tmp/MetadataGeneratorTestSuite"
+	const OutputFolder = "/tmp/MetadataGeneratorTestSuite/"
 	const FileNameA = "fileA"
 	const FileNameB = "fileB"
-	const TestFileA = OutputFolder + "/" + FileNameA
-	const TestFileB = OutputFolder + "/" + FileNameB
+	const TestFileA = OutputFolder + FileNameA
+	const TestFileB = OutputFolder + FileNameB
 	var testSuite MetadataGeneratorTestSuite
 	testSuite.outputFolder = OutputFolder
 	testSuite.fileNameA = FileNameA

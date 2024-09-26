@@ -32,7 +32,7 @@ func (suite *FilesMidemTestSuite) TestMixAndDemix() {
 	originalFiles := make(map[string][]byte)
 	var inputFiles []string
 	for _, file := range dirHandle {
-		filePath := suite.inputFolder + "/" + file.Name()
+		filePath := suite.inputFolder + file.Name()
 		originalFiles[file.Name()] = HashFile(filePath)
 		inputFiles = append(inputFiles, filePath)
 	}
@@ -42,18 +42,42 @@ func (suite *FilesMidemTestSuite) TestMixAndDemix() {
 
 	DemixFiles([]string{suite.outputFile}, suite.outputFolder)
 	for file, hash := range originalFiles {
-		filepath := suite.outputFolder + "/" + file
+		filepath := suite.outputFolder + file
+		assert.Equal(suite.T(), true, FileExists(filepath))
+		assert.Equal(suite.T(), hash, HashFile(filepath))
+	}
+}
+
+func (suite *FilesMidemTestSuite) TestMixAndDemixFolder() {
+	dirHandle, err := os.ReadDir(suite.inputFolder)
+	if err != nil {
+		panic(err)
+	}
+
+	originalFiles := make(map[string][]byte)
+	for _, file := range dirHandle {
+		filePath := suite.inputFolder + file.Name()
+		originalFiles[file.Name()] = HashFile(filePath)
+	}
+
+	MixFiles([]string{suite.inputFolder}, suite.outputFile)
+	assert.Equal(suite.T(), true, FileExists(suite.outputFile))
+
+	DemixFiles([]string{suite.outputFile}, suite.outputFolder)
+	assert.Equal(suite.T(), true, FileExists(suite.outputFolder+suite.inputFolder))
+	for file, hash := range originalFiles {
+		filepath := suite.outputFolder + suite.inputFolder + file
 		assert.Equal(suite.T(), true, FileExists(filepath))
 		assert.Equal(suite.T(), hash, HashFile(filepath))
 	}
 }
 
 func TestFilesMidemTestSuite(t *testing.T) {
-	const InputFolder = "./test_files"
-	const OutputFolder = "/tmp/FilesMidemTestSuite"
+	const InputFolder = "test_files/"
+	const OutputFolder = "/tmp/FilesMidemTestSuite/"
 	var testSuite FilesMidemTestSuite
 	testSuite.inputFolder = InputFolder
 	testSuite.outputFolder = OutputFolder
-	testSuite.outputFile = OutputFolder + "/output.mix"
+	testSuite.outputFile = OutputFolder + "output.mix"
 	suite.Run(t, &testSuite)
 }

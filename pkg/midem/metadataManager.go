@@ -2,8 +2,9 @@ package midem
 
 import (
 	"encoding/binary"
+	"fmt"
 	"os"
-	"path/filepath"
+	"strings"
 )
 
 type Metadata struct {
@@ -12,10 +13,15 @@ type Metadata struct {
 	Mode     uint32
 }
 
-func Generate(files []string) []Metadata {
+type MetadataInput struct {
+	filename  string
+	originDir string
+}
+
+func Generate(files []MetadataInput) []Metadata {
 	var metadatas []Metadata
-	for _, filename := range files {
-		fileHandle, err := os.OpenFile(filename, os.O_RDONLY, 0755)
+	for _, file := range files {
+		fileHandle, err := os.OpenFile(file.filename, os.O_RDONLY, 0755)
 		if err != nil {
 			panic(err)
 		}
@@ -23,7 +29,9 @@ func Generate(files []string) []Metadata {
 		if statErr != nil {
 			panic(statErr)
 		}
-		metadatas = append(metadatas, Metadata{filepath.Base(filename), stat.Size(), uint32(stat.Mode())})
+		filenameWithoutOrigin := strings.TrimPrefix(file.filename, file.originDir)
+		fmt.Printf("New metadata: %s\n", filenameWithoutOrigin)
+		metadatas = append(metadatas, Metadata{filenameWithoutOrigin, stat.Size(), uint32(stat.Mode())})
 	}
 	return metadatas
 }
@@ -59,6 +67,8 @@ func Parse(dataBytesSource IDataBytesManager) []Metadata {
 		filename, _ := dataBytesSource.Read(uint(filenameSize[0]))
 		fileSize, _ := dataBytesSource.Read(8)
 		fileMode, _ := dataBytesSource.Read(4)
+
+		fmt.Printf("Read metadata: %s\n", filename)
 		metadatas = append(metadatas, Metadata{string(filename), int64(binary.LittleEndian.Uint64(fileSize)), uint32(binary.LittleEndian.Uint32(fileMode))})
 
 		parsedMetadatas++

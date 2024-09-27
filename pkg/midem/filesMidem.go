@@ -8,14 +8,11 @@ import (
 )
 
 func CreateDirManagers(dirPath string, originDir string) []IDataBytesManager {
-	dirHandle, err := os.ReadDir(dirPath)
-	if err != nil {
-		panic(err)
-	}
+	filesInDir := GetFilesInDir(dirPath)
 
 	var managers []IDataBytesManager
-	for _, file := range dirHandle {
-		pathWithDir := dirPath + "/" + file.Name()
+	for _, file := range filesInDir {
+		pathWithDir := dirPath + "/" + file
 		if IsDir(pathWithDir) {
 			managers = append(managers, CreateDirManagers(pathWithDir, originDir)...)
 		} else {

@@ -12,6 +12,26 @@ func FileExists(filepath string) bool {
 	return !errors.Is(err, os.ErrNotExist)
 }
 
+func IsDir(filePath string) bool {
+	fi, err := os.Stat(filePath)
+	if err != nil {
+		panic(err)
+	}
+	return fi.Mode().IsDir()
+}
+
+func GetFilesInDir(dirPath string) []string {
+	dirHandle, err := os.ReadDir(dirPath)
+	if err != nil {
+		panic(err)
+	}
+	var filesList []string
+	for _, file := range dirHandle {
+		filesList = append(filesList, file.Name())
+	}
+	return filesList
+}
+
 func HashFile(filepath string) []byte {
 	fileHandle, err := os.Open(filepath)
 	if err != nil {
@@ -23,12 +43,4 @@ func HashFile(filepath string) []byte {
 		panic(err)
 	}
 	return h.Sum(nil)
-}
-
-func IsDir(filePath string) bool {
-	fi, err := os.Stat(filePath)
-	if err != nil {
-		panic(err)
-	}
-	return fi.Mode().IsDir()
 }

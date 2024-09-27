@@ -24,16 +24,13 @@ func (suite *FilesMidemTestSuite) TearDownTest() {
 }
 
 func (suite *FilesMidemTestSuite) TestMixAndDemix() {
-	dirHandle, err := os.ReadDir(suite.inputFolder)
-	if err != nil {
-		panic(err)
-	}
+	filesInDir := GetFilesInDir(suite.inputFolder)
 
 	originalFiles := make(map[string][]byte)
 	var inputFiles []string
-	for _, file := range dirHandle {
-		filePath := suite.inputFolder + file.Name()
-		originalFiles[file.Name()] = HashFile(filePath)
+	for _, file := range filesInDir {
+		filePath := suite.inputFolder + file
+		originalFiles[file] = HashFile(filePath)
 		inputFiles = append(inputFiles, filePath)
 	}
 
@@ -49,15 +46,12 @@ func (suite *FilesMidemTestSuite) TestMixAndDemix() {
 }
 
 func (suite *FilesMidemTestSuite) TestMixAndDemixFolder() {
-	dirHandle, err := os.ReadDir(suite.inputFolder)
-	if err != nil {
-		panic(err)
-	}
+	filesInDir := GetFilesInDir(suite.inputFolder)
 
 	originalFiles := make(map[string][]byte)
-	for _, file := range dirHandle {
-		filePath := suite.inputFolder + file.Name()
-		originalFiles[file.Name()] = HashFile(filePath)
+	for _, file := range filesInDir {
+		filePath := suite.inputFolder + file
+		originalFiles[file] = HashFile(filePath)
 	}
 
 	MixFiles([]string{suite.inputFolder}, suite.outputFile)

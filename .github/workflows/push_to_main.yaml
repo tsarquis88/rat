@@ -24,3 +24,13 @@ jobs:
 
     - name: Test cmdLineParser package
       run: cd pkg/cmdLineParser/ && go mod tidy && go test -v
+    
+    - name: Test end-to-end
+      run: |
+        cd cmd/rat/
+        ./main /tmp/out.rat ../../tests/input_files/testData.json
+        cmp --silent /tmp/out.rat ../../tests/expected_files/out.rat
+        if [ $retVal -ne 0 ]; then
+          echo "E2E failed: RAT file is not as expected"
+          exit 1
+        fi

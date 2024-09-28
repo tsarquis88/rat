@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 func FileExists(filepath string) bool {
@@ -20,14 +21,21 @@ func IsDir(filePath string) bool {
 	return fi.Mode().IsDir()
 }
 
-func GetFilesInDir(dirPath string) []string {
+func GetFilesInDir(dirPath string, recursive bool) []string {
 	dirHandle, err := os.ReadDir(dirPath)
 	if err != nil {
 		panic(err)
 	}
 	var filesList []string
 	for _, file := range dirHandle {
-		filesList = append(filesList, file.Name())
+		fileWithFolder := filepath.Join(dirPath, file.Name())
+		if IsDir(fileWithFolder) {
+			if recursive {
+				filesList = append(filesList, GetFilesInDir(fileWithFolder, true)...)
+			}
+		} else {
+			filesList = append(filesList, fileWithFolder)
+		}
 	}
 	return filesList
 }

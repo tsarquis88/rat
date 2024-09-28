@@ -2,6 +2,7 @@ package midem
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,14 +25,13 @@ func (suite *FilesMidemTestSuite) TearDownTest() {
 }
 
 func (suite *FilesMidemTestSuite) TestMixAndDemix() {
-	filesInDir := GetFilesInDir(suite.inputFolder)
+	filesInDir := GetFilesInDir(suite.inputFolder, false)
 
 	originalFiles := make(map[string][]byte)
 	var inputFiles []string
 	for _, file := range filesInDir {
-		filePath := suite.inputFolder + file
-		originalFiles[file] = HashFile(filePath)
-		inputFiles = append(inputFiles, filePath)
+		originalFiles[file] = HashFile(file)
+		inputFiles = append(inputFiles, file)
 	}
 
 	MixFiles(inputFiles, suite.outputFile)
@@ -39,39 +39,38 @@ func (suite *FilesMidemTestSuite) TestMixAndDemix() {
 
 	DemixFiles([]string{suite.outputFile}, suite.outputFolder)
 	for file, hash := range originalFiles {
-		filepath := suite.outputFolder + file
+		filepath := filepath.Join(suite.outputFolder, filepath.Base(file))
 		assert.Equal(suite.T(), true, FileExists(filepath))
 		assert.Equal(suite.T(), hash, HashFile(filepath))
 	}
 }
 
 func (suite *FilesMidemTestSuite) TestMixAndDemixFolder() {
-	filesInDir := GetFilesInDir(suite.inputFolder)
+	filesInDir := GetFilesInDir(suite.inputFolder, false)
 
 	originalFiles := make(map[string][]byte)
 	for _, file := range filesInDir {
-		filePath := suite.inputFolder + file
-		originalFiles[file] = HashFile(filePath)
+		originalFiles[file] = HashFile(file)
 	}
 
 	MixFiles([]string{suite.inputFolder}, suite.outputFile)
 	assert.Equal(suite.T(), true, FileExists(suite.outputFile))
 
 	DemixFiles([]string{suite.outputFile}, suite.outputFolder)
-	assert.Equal(suite.T(), true, FileExists(suite.outputFolder+suite.inputFolder))
+	assert.Equal(suite.T(), true, FileExists(filepath.Join(suite.outputFolder, suite.inputFolder)))
 	for file, hash := range originalFiles {
-		filepath := suite.outputFolder + suite.inputFolder + file
+		filepath := filepath.Join(suite.outputFolder, file)
 		assert.Equal(suite.T(), true, FileExists(filepath))
 		assert.Equal(suite.T(), hash, HashFile(filepath))
 	}
 }
 
 func TestFilesMidemTestSuite(t *testing.T) {
-	const InputFolder = "test_files/"
-	const OutputFolder = "/tmp/FilesMidemTestSuite/"
+	const InputFolder = "test_files"
+	const OutputFolder = "/tmp/FilesMidemTestSuite"
 	var testSuite FilesMidemTestSuite
 	testSuite.inputFolder = InputFolder
 	testSuite.outputFolder = OutputFolder
-	testSuite.outputFile = OutputFolder + "output.mix"
+	testSuite.outputFile = filepath.Join(OutputFolder, "output.mix")
 	suite.Run(t, &testSuite)
 }

@@ -3,6 +3,7 @@ package midem
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -68,37 +69,63 @@ func (suite *UtilsTestSuite) TestIsDirNegativeInexistant() {
 // GetFilesInDir()
 
 func (suite *UtilsTestSuite) TestGetFilesInDirNoFiles() {
-	assert.Equal(suite.T(), 0, len(GetFilesInDir(suite.outputFolder)))
+	assert.Equal(suite.T(), 0, len(GetFilesInDir(suite.outputFolder, false)))
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirOneFile() {
-	os.WriteFile(suite.outputFolder+"fileA", []byte("12345"), 0755)
+	filePathA := filepath.Join(suite.outputFolder, "fileA")
+	os.WriteFile(filePathA, []byte("12345"), 0755)
 
-	expectedFiles := []string{"fileA"}
-	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder))
+	expectedFiles := []string{filePathA}
+	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, false))
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFiles() {
-	os.WriteFile(suite.outputFolder+"fileA", []byte("12345"), 0755)
-	os.WriteFile(suite.outputFolder+"fileB", []byte("ABCDE"), 0755)
-	os.WriteFile(suite.outputFolder+"fileC", []byte(",.-{}"), 0755)
+	filePathA := filepath.Join(suite.outputFolder, "fileA")
+	filePathB := filepath.Join(suite.outputFolder, "fileB")
+	filePathC := filepath.Join(suite.outputFolder, "fileC")
+	os.WriteFile(filePathA, []byte("12345"), 0755)
+	os.WriteFile(filePathB, []byte("ABCDE"), 0755)
+	os.WriteFile(filePathC, []byte(",.-{}"), 0755)
 
-	expectedFiles := []string{"fileA", "fileB", "fileC"}
-	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder))
+	expectedFiles := []string{filePathA, filePathB, filePathC}
+	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, false))
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFilesWithDir() {
-	os.WriteFile(suite.outputFolder+"fileA", []byte("12345"), 0755)
-	os.WriteFile(suite.outputFolder+"fileB", []byte("ABCDE"), 0755)
-	os.WriteFile(suite.outputFolder+"fileC", []byte(",.-{}"), 0755)
-	os.Mkdir(suite.outputFolder+"folder", 0755)
+	filePathA := filepath.Join(suite.outputFolder, "fileA")
+	filePathB := filepath.Join(suite.outputFolder, "fileB")
+	filePathC := filepath.Join(suite.outputFolder, "fileC")
+	folderPath := filepath.Join(suite.outputFolder, "folder")
+	filePathD := filepath.Join(folderPath, "fileD")
+	os.WriteFile(filePathA, []byte("12345"), 0755)
+	os.WriteFile(filePathB, []byte("ABCDE"), 0755)
+	os.WriteFile(filePathC, []byte(",.-{}"), 0755)
+	os.Mkdir(folderPath, 0755)
+	os.WriteFile(filePathD, []byte("___"), 0755)
 
-	expectedFiles := []string{"fileA", "fileB", "fileC", "folder"}
-	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder))
+	expectedFiles := []string{filePathA, filePathB, filePathC}
+	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, false))
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirInexistantDir() {
-	assert.Panics(suite.T(), func() { GetFilesInDir(suite.outputFolder + "folder") }, "Should panic")
+	assert.Panics(suite.T(), func() { GetFilesInDir(suite.outputFolder+"folder", false) }, "Should panic")
+}
+
+func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFilesWithDirRecursive() {
+	filePathA := filepath.Join(suite.outputFolder, "fileA")
+	filePathB := filepath.Join(suite.outputFolder, "fileB")
+	filePathC := filepath.Join(suite.outputFolder, "fileC")
+	folderPath := filepath.Join(suite.outputFolder, "folder")
+	filePathD := filepath.Join(folderPath, "fileD")
+	os.WriteFile(filePathA, []byte("12345"), 0755)
+	os.WriteFile(filePathB, []byte("ABCDE"), 0755)
+	os.WriteFile(filePathC, []byte(",.-{}"), 0755)
+	os.Mkdir(folderPath, 0755)
+	os.WriteFile(filePathD, []byte("___"), 0755)
+
+	expectedFiles := []string{filePathA, filePathB, filePathC, filePathD}
+	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, true))
 }
 
 // HashFile()
@@ -114,7 +141,7 @@ func (suite *UtilsTestSuite) TestHashFileInexistantFile() {
 	assert.Panics(suite.T(), func() { HashFile(suite.outputFolder + "file") }, "Should panic")
 }
 
-// TestSuite
+// TestUtilsTestSuite()
 
 func TestUtilsTestSuite(t *testing.T) {
 	const OutputFolder = "/tmp/UtilsTestSuite/"

@@ -1,4 +1,4 @@
-package midem
+package rat
 
 import (
 	"fmt"
@@ -29,10 +29,10 @@ func GetDataFromManager(fileManager DataBytesFileManager, size int64) []byte {
 	return data
 }
 
-func MixFiles(inputFiles []string, outputFile string) {
-	fmt.Printf("Mix: %s\n", inputFiles)
+func Rat(inputFiles []string, outputFile string) {
+	fmt.Printf("Rat: %s\n", inputFiles)
 
-	var filesToMix []MetadataInput
+	var filesToRat []MetadataInput
 	for _, file := range inputFiles {
 		originDir := filepath.Dir(file)
 		if IsDir(file) {
@@ -42,36 +42,36 @@ func MixFiles(inputFiles []string, outputFile string) {
 				if filenameWithoutOriginDir[0] == '/' {
 					filenameWithoutOriginDir = filenameWithoutOriginDir[1:]
 				}
-				filesToMix = append(filesToMix, MetadataInput{filenameWithoutOriginDir, originDir})
+				filesToRat = append(filesToRat, MetadataInput{filenameWithoutOriginDir, originDir})
 			}
 		} else {
-			filesToMix = append(filesToMix, MetadataInput{filepath.Base(file), originDir})
+			filesToRat = append(filesToRat, MetadataInput{filepath.Base(file), originDir})
 		}
 	}
 
-	var mixDump []byte
-	mixDump = append(mixDump, byte(len(filesToMix)))
+	var ratDump []byte
+	ratDump = append(ratDump, byte(len(filesToRat)))
 
-	for _, file := range filesToMix {
-		fmt.Printf("File to mix: (%s) %s\n", file.originDir, file.filename)
+	for _, file := range filesToRat {
+		fmt.Printf("File to rat: (%s) %s\n", file.originDir, file.filename)
 
 		metadata := GenerateMetadata(file)
-		mixDump = append(mixDump, DumpMetadata(metadata)...)
+		ratDump = append(ratDump, DumpMetadata(metadata)...)
 		fileManager := NewDataBytesFileManager(filepath.Join(file.originDir, file.filename))
-		mixDump = append(mixDump, GetDataFromManager(fileManager, metadata.Size)...)
+		ratDump = append(ratDump, GetDataFromManager(fileManager, metadata.Size)...)
 	}
 
 	if FileExists(outputFile) {
 		panic("Output file exists")
 	}
 
-	NewDataBytesDumper(outputFile).Dump(mixDump)
-	fmt.Printf("Files mixed into: %s\n", outputFile)
+	NewDataBytesDumper(outputFile).Dump(ratDump)
+	fmt.Printf("Files rated into: %s\n", outputFile)
 }
 
-func DemixFiles(filesList []string, outputFolder string) {
+func Derat(filesList []string, outputFolder string) {
 	for _, inputFile := range filesList {
-		fmt.Printf("Demix: %s\n", inputFile)
+		fmt.Printf("Derat: %s\n", inputFile)
 
 		fileManager := NewDataBytesFileManager(inputFile)
 

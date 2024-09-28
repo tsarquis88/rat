@@ -1,4 +1,4 @@
-module midem
+module rat
 
 go 1.23.0
 

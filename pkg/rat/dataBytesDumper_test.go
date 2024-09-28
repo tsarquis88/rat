@@ -1,4 +1,4 @@
-package midem
+package rat
 
 import (
 	"github.com/stretchr/testify/assert"

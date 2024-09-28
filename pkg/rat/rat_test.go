@@ -1,4 +1,4 @@
-package midem
+package rat
 
 import (
 	"os"
@@ -9,22 +9,22 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type FilesMidemTestSuite struct {
+type RatTestSuite struct {
 	suite.Suite
 	inputFolder  string
 	outputFolder string
 	outputFile   string
 }
 
-func (suite *FilesMidemTestSuite) SetupTest() {
+func (suite *RatTestSuite) SetupTest() {
 	os.Mkdir(suite.outputFolder, 0755)
 }
 
-func (suite *FilesMidemTestSuite) TearDownTest() {
+func (suite *RatTestSuite) TearDownTest() {
 	os.RemoveAll(suite.outputFolder)
 }
 
-func (suite *FilesMidemTestSuite) TestMixAndDemix() {
+func (suite *RatTestSuite) TestRatAndDerat() {
 	filesInDir := GetFilesInDir(suite.inputFolder, false)
 
 	originalFiles := make(map[string][]byte)
@@ -34,10 +34,10 @@ func (suite *FilesMidemTestSuite) TestMixAndDemix() {
 		inputFiles = append(inputFiles, file)
 	}
 
-	MixFiles(inputFiles, suite.outputFile)
+	Rat(inputFiles, suite.outputFile)
 	assert.Equal(suite.T(), true, FileExists(suite.outputFile))
 
-	DemixFiles([]string{suite.outputFile}, suite.outputFolder)
+	Derat([]string{suite.outputFile}, suite.outputFolder)
 	for file, hash := range originalFiles {
 		filepath := filepath.Join(suite.outputFolder, filepath.Base(file))
 		assert.Equal(suite.T(), true, FileExists(filepath))
@@ -45,7 +45,7 @@ func (suite *FilesMidemTestSuite) TestMixAndDemix() {
 	}
 }
 
-func (suite *FilesMidemTestSuite) TestMixAndDemixFolder() {
+func (suite *RatTestSuite) TestRatAndDeratFolder() {
 	filesInDir := GetFilesInDir(suite.inputFolder, false)
 
 	originalFiles := make(map[string][]byte)
@@ -53,10 +53,10 @@ func (suite *FilesMidemTestSuite) TestMixAndDemixFolder() {
 		originalFiles[file] = HashFile(file)
 	}
 
-	MixFiles([]string{suite.inputFolder}, suite.outputFile)
+	Rat([]string{suite.inputFolder}, suite.outputFile)
 	assert.Equal(suite.T(), true, FileExists(suite.outputFile))
 
-	DemixFiles([]string{suite.outputFile}, suite.outputFolder)
+	Derat([]string{suite.outputFile}, suite.outputFolder)
 	assert.Equal(suite.T(), true, FileExists(filepath.Join(suite.outputFolder, suite.inputFolder)))
 	for file, hash := range originalFiles {
 		filepath := filepath.Join(suite.outputFolder, file)
@@ -65,12 +65,12 @@ func (suite *FilesMidemTestSuite) TestMixAndDemixFolder() {
 	}
 }
 
-func TestFilesMidemTestSuite(t *testing.T) {
+func TestRatTestSuite(t *testing.T) {
 	const InputFolder = "test_files"
-	const OutputFolder = "/tmp/FilesMidemTestSuite"
-	var testSuite FilesMidemTestSuite
+	const OutputFolder = "/tmp/RatTestSuite"
+	var testSuite RatTestSuite
 	testSuite.inputFolder = InputFolder
 	testSuite.outputFolder = OutputFolder
-	testSuite.outputFile = filepath.Join(OutputFolder, "output.mix")
+	testSuite.outputFile = filepath.Join(OutputFolder, "output.rat")
 	suite.Run(t, &testSuite)
 }

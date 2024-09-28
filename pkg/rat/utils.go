@@ -1,4 +1,4 @@
-package midem
+package rat
 
 import (
 	"crypto/sha256"

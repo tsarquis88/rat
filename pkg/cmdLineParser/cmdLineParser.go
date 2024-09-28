@@ -14,18 +14,18 @@ func Parse(args []string) (bool, []string) {
 	}
 	args = remove(args, 0)
 
-	mix := true
+	rat := true
 	for i, arg := range args {
 		if arg == "-x" {
-			mix = false
+			rat = false
 			args = remove(args, i)
 			break
 		}
 	}
 
-	if mix && len(args) < 2 {
+	if rat && len(args) < 2 {
 		panic("Missing arguments")
 	}
 
-	return mix, args
+	return rat, args
 }

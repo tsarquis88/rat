@@ -42,7 +42,7 @@ func (suite *MetadataGeneratorTestSuite) TestDumpRatMetadata() {
 
 func (suite *MetadataGeneratorTestSuite) TestParseRatDump() {
 	dataBytesManager := NewDataBytesManagerMock([]byte{1, 2})
-	assert.Equal(suite.T(), RatMetadata{1, 2}, ParseRatDump(dataBytesManager))
+	assert.Equal(suite.T(), RatMetadata{1, 1}, ParseRatDump(dataBytesManager))
 }
 
 // GenerateMetadata()

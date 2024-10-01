@@ -16,20 +16,26 @@ jobs:
       with:
         go-version: '1.23'
 
-    - name: Build cmd
-      run: cd cmd/rat/ && go mod tidy && go build -v
-
     - name: Test rat package
       run: cd pkg/rat/ && go mod tidy && go test -v
 
     - name: Test cmdLineParser package
       run: cd pkg/cmdLineParser/ && go mod tidy && go test -v
+
+    - name: Build cmd
+      run: cd cmd/rat/ && go mod tidy && go build -v
     
     - name: Test end-to-end
       run: |
         cd cmd/rat/
         ./main /tmp/out.rat ../../tests/input_files/testData.json
         cmp --silent /tmp/out.rat ../../tests/expected_files/out.rat
+        if [ $? -ne 0 ]; then
+          echo "E2E failed: RAT file is not as expected"
+          exit 1
+        fi
+        ./main /tmp/out.rat.gz ../../tests/input_files/testData.json
+        cmp --silent /tmp/out.rat.gz ../../tests/expected_files/out.rat.gz
         if [ $? -ne 0 ]; then
           echo "E2E failed: RAT file is not as expected"
           exit 1

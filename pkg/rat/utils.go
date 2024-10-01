@@ -1,6 +1,8 @@
 package rat
 
 import (
+	"bytes"
+	"compress/gzip"
 	"crypto/sha256"
 	"errors"
 	"io"
@@ -51,4 +53,42 @@ func HashFile(filepath string) []byte {
 		panic(err)
 	}
 	return h.Sum(nil)
+}
+
+func GzipCompress(inputData []byte) []byte {
+	var b bytes.Buffer
+	gz := gzip.NewWriter(&b)
+
+	_, err := gz.Write(inputData)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = gz.Flush(); err != nil {
+		panic(err)
+	}
+
+	if err = gz.Close(); err != nil {
+		panic(err)
+	}
+
+	return b.Bytes()
+}
+
+func GzipDecompress(inputData []byte) []byte {
+	b := bytes.NewBuffer(inputData)
+
+	var r io.Reader
+	r, err := gzip.NewReader(b)
+	if err != nil {
+		panic(err)
+	}
+
+	var resB bytes.Buffer
+	_, err = resB.ReadFrom(r)
+	if err != nil {
+		panic(err)
+	}
+
+	return resB.Bytes()
 }

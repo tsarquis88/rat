@@ -6,6 +6,11 @@ import (
 	"path/filepath"
 )
 
+type RatMetadata struct {
+	filesQty        int
+	compressionType uint8
+}
+
 type Metadata struct {
 	Filename string
 	Size     int64
@@ -15,6 +20,20 @@ type Metadata struct {
 type MetadataInput struct {
 	filename  string
 	originDir string
+}
+
+func GenerateRatMetadata(filesQty int, compressionType uint8) RatMetadata {
+	return RatMetadata{filesQty, compressionType}
+}
+
+func DumpRatMetadata(ratMetadata RatMetadata) []byte {
+	return []byte{byte(ratMetadata.filesQty), ratMetadata.compressionType}
+}
+
+func ParseRatDump(dataBytesSource IDataBytesManager) RatMetadata {
+	metadatasQtyRaw, _ := dataBytesSource.Read(1)
+	compressionTypeRaw, _ := dataBytesSource.Read(1)
+	return RatMetadata{int(metadatasQtyRaw[0]), compressionTypeRaw[0]}
 }
 
 func GenerateMetadata(file MetadataInput) Metadata {
@@ -43,7 +62,7 @@ func DumpMetadata(metadata Metadata) []byte {
 	return metadataDump
 }
 
-func ParseMetadata(dataBytesSource IDataBytesManager) Metadata {
+func ParseDump(dataBytesSource IDataBytesManager) Metadata {
 	filenameSize, _ := dataBytesSource.Read(1)
 	filename, _ := dataBytesSource.Read(uint(filenameSize[0]))
 	fileSize, _ := dataBytesSource.Read(8)

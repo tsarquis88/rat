@@ -25,6 +25,26 @@ func (suite *MetadataGeneratorTestSuite) TearDownTest() {
 	os.RemoveAll(suite.outputFolder)
 }
 
+// GenerateRatMetadata()
+
+func (suite *MetadataGeneratorTestSuite) TestGenerateRatMetadata() {
+	assert.Equal(suite.T(), RatMetadata{3, 1}, GenerateRatMetadata(3, 1))
+}
+
+// DumpRatMetadata()
+
+func (suite *MetadataGeneratorTestSuite) TestDumpRatMetadata() {
+	metadata := RatMetadata{5, 0}
+	assert.Equal(suite.T(), []byte{5, 0}, DumpRatMetadata(metadata))
+}
+
+// ParseRatDump()
+
+func (suite *MetadataGeneratorTestSuite) TestParseRatDump() {
+	dataBytesManager := NewDataBytesManagerMock([]byte{1, 2})
+	assert.Equal(suite.T(), RatMetadata{1, 2}, ParseRatDump(dataBytesManager))
+}
+
 // GenerateMetadata()
 
 func (suite *MetadataGeneratorTestSuite) TestGenerateMetadata() {
@@ -61,9 +81,9 @@ func (suite *MetadataGeneratorTestSuite) TestDumpMetadata() {
 	assert.Equal(suite.T(), expectedDump, DumpMetadata(metadata))
 }
 
-// ParseMetadata()
+// ParseDump()
 
-func (suite *MetadataGeneratorTestSuite) TestParseMetadata() {
+func (suite *MetadataGeneratorTestSuite) TestParseDump() {
 	expectedMetadata := Metadata{suite.fileName, 5, 0755}
 
 	expectedFileSize := make([]byte, 8)
@@ -76,11 +96,12 @@ func (suite *MetadataGeneratorTestSuite) TestParseMetadata() {
 	dump = append(dump, []byte(suite.fileName)...)
 	dump = append(dump, expectedFileSize...)
 	dump = append(dump, expectedFileMode...)
+	dump = append(dump, byte(0))
 	dump = append(dump, []byte("Unread data")...)
 
 	dataBytesManager := NewDataBytesManagerMock(dump)
 
-	assert.Equal(suite.T(), expectedMetadata, ParseMetadata(dataBytesManager))
+	assert.Equal(suite.T(), expectedMetadata, ParseDump(dataBytesManager))
 }
 
 // TestMetadataGeneratorTestSuite

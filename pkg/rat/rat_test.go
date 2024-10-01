@@ -65,6 +65,35 @@ func (suite *RatTestSuite) TestRatAndDeratFolder() {
 	}
 }
 
+func (suite *RatTestSuite) TestRatAndDeratGzip() {
+	filesInDir := GetFilesInDir(suite.inputFolder, false)
+
+	originalFiles := make(map[string][]byte)
+	var inputFiles []string
+	for _, file := range filesInDir {
+		originalFiles[file] = HashFile(file)
+		inputFiles = append(inputFiles, file)
+	}
+
+	outputFile := suite.outputFile + ".gz"
+	Rat(inputFiles, outputFile)
+	assert.Equal(suite.T(), true, FileExists(outputFile))
+
+	Derat([]string{outputFile}, suite.outputFolder)
+	for file, hash := range originalFiles {
+		filepath := filepath.Join(suite.outputFolder, filepath.Base(file))
+		assert.Equal(suite.T(), true, FileExists(filepath))
+		assert.Equal(suite.T(), hash, HashFile(filepath))
+	}
+}
+
+func (suite *RatTestSuite) TestRatOutputFileExists() {
+	filesInDir := GetFilesInDir(suite.inputFolder, false)
+	os.WriteFile(suite.outputFile, []byte("12345"), 0755)
+
+	assert.Panics(suite.T(), func() { Rat(filesInDir, suite.outputFile) }, "Should panic")
+}
+
 func TestRatTestSuite(t *testing.T) {
 	const InputFolder = "test_files"
 	const OutputFolder = "/tmp/RatTestSuite"

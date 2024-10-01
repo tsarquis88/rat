@@ -23,11 +23,3 @@ func (manager *DataBytesManagerMock) Read(bytesQty uint) ([]byte, int) {
 	manager.idx = upperLimit
 	return retData, int(readBytes)
 }
-
-func (manager *DataBytesManagerMock) Name() string {
-	return "DataBytesManagerMock"
-}
-
-func (manager *DataBytesManagerMock) Origin() string {
-	return ""
-}

@@ -1,6 +1,7 @@
 package rat
 
 import (
+	"io/fs"
 	"os"
 )
 
@@ -8,8 +9,7 @@ type DataBytesDumper struct {
 	fileHandle os.File
 }
 
-func NewDataBytesDumper(filename string) DataBytesDumper {
-	mode := os.FileMode(438) // RW-RW-RW
+func NewDataBytesDumper(filename string, mode fs.FileMode) DataBytesDumper {
 	fileHandle, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, mode)
 	if err != nil {
 		panic(err)

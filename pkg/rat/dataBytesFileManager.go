@@ -27,7 +27,3 @@ func (manager DataBytesFileManager) Read(bytesQty uint) ([]byte, int) {
 	}
 	return buff, readBytes
 }
-
-func (manager DataBytesFileManager) Name() string {
-	return manager.filename
-}

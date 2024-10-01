@@ -141,6 +141,21 @@ func (suite *UtilsTestSuite) TestHashFileInexistantFile() {
 	assert.Panics(suite.T(), func() { HashFile(suite.outputFolder + "file") }, "Should panic")
 }
 
+// GzipCompress()
+
+func (suite *UtilsTestSuite) TestGzipCompressDecompress() {
+	var dataOrigin []byte
+	for i := 0; i < 10000000; i++ {
+		dataOrigin = append(dataOrigin, byte(i))
+	}
+
+	dataCompressed := GzipCompress(dataOrigin)
+	assert.Greater(suite.T(), len(dataOrigin), len(dataCompressed))
+
+	dataDecompressed := GzipDecompress(dataCompressed)
+	assert.Equal(suite.T(), dataOrigin, dataDecompressed)
+}
+
 // TestUtilsTestSuite()
 
 func TestUtilsTestSuite(t *testing.T) {

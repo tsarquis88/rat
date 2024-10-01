@@ -17,7 +17,14 @@ jobs:
         go-version: '1.23'
 
     - name: Test rat package
-      run: cd pkg/rat/ && go mod tidy && go test -v
+      run: |
+        cd pkg/rat/ && go mod tidy && go test -v -cover > tests.results
+        cat tests.results
+        PERCENTAGE=$(cat tests.results | tail -2 | head -1 | awk '{printf $2}' | head -c 2)
+        if [ "${PERCENTAGE}" -lt "90" ]; then
+            echo "Code coverage ($PERCENTAGE%) is not high enough";
+            exit 1
+        fi
 
     - name: Test cmdLineParser package
       run: cd pkg/cmdLineParser/ && go mod tidy && go test -v

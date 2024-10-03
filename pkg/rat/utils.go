@@ -10,6 +10,28 @@ import (
 	"path/filepath"
 )
 
+func FileRead(filepath string) []byte {
+	fi, err := os.Open(filepath)
+	if err != nil {
+		panic(err)
+	}
+	defer fi.Close()
+
+	var fileData []byte
+	for {
+		buf := make([]byte, 1024)
+		n, err := fi.Read(buf)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			panic(err)
+		}
+		fileData = append(fileData, buf[:n]...)
+	}
+	return fileData
+}
+
 func FileExists(filepath string) bool {
 	_, err := os.Stat(filepath)
 	return !errors.Is(err, os.ErrNotExist)

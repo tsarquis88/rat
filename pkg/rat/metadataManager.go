@@ -7,8 +7,7 @@ import (
 )
 
 type RatMetadata struct {
-	filesQty        int
-	compressionType uint8
+	filesQty int
 }
 
 type Metadata struct {
@@ -22,18 +21,17 @@ type MetadataInput struct {
 	originDir string
 }
 
-func GenerateRatMetadata(filesQty int, compressionType uint8) RatMetadata {
-	return RatMetadata{filesQty, compressionType}
+func GenerateRatMetadata(filesQty int) RatMetadata {
+	return RatMetadata{filesQty}
 }
 
 func DumpRatMetadata(ratMetadata RatMetadata) []byte {
-	return []byte{byte(ratMetadata.filesQty), ratMetadata.compressionType}
+	return []byte{byte(ratMetadata.filesQty)}
 }
 
 func ParseRatDump(dataBytesSource IDataBytesManager) RatMetadata {
 	metadatasQtyRaw, _ := dataBytesSource.Read(1)
-	compressionTypeRaw, _ := dataBytesSource.Read(1)
-	return RatMetadata{int(metadatasQtyRaw[0]), compressionTypeRaw[0]}
+	return RatMetadata{int(metadatasQtyRaw[0])}
 }
 
 func GenerateMetadata(file MetadataInput) Metadata {

@@ -28,21 +28,21 @@ func (suite *MetadataGeneratorTestSuite) TearDownTest() {
 // GenerateRatMetadata()
 
 func (suite *MetadataGeneratorTestSuite) TestGenerateRatMetadata() {
-	assert.Equal(suite.T(), RatMetadata{3, 1}, GenerateRatMetadata(3, 1))
+	assert.Equal(suite.T(), RatMetadata{3}, GenerateRatMetadata(3))
 }
 
 // DumpRatMetadata()
 
 func (suite *MetadataGeneratorTestSuite) TestDumpRatMetadata() {
-	metadata := RatMetadata{5, 0}
-	assert.Equal(suite.T(), []byte{5, 0}, DumpRatMetadata(metadata))
+	metadata := RatMetadata{5}
+	assert.Equal(suite.T(), []byte{5}, DumpRatMetadata(metadata))
 }
 
 // ParseRatDump()
 
 func (suite *MetadataGeneratorTestSuite) TestParseRatDump() {
-	dataBytesManager := NewDataBytesManagerMock([]byte{1, 2})
-	assert.Equal(suite.T(), RatMetadata{1, 2}, ParseRatDump(dataBytesManager))
+	dataBytesManager := NewDataBytesManagerMock([]byte{1})
+	assert.Equal(suite.T(), RatMetadata{1}, ParseRatDump(dataBytesManager))
 }
 
 // GenerateMetadata()

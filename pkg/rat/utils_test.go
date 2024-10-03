@@ -23,6 +23,28 @@ func (suite *UtilsTestSuite) TearDownTest() {
 	os.RemoveAll(suite.outputFolder)
 }
 
+// FileRead()
+
+func (suite *UtilsTestSuite) TestFileRead() {
+	fileData := []byte("12345")
+	testFile := filepath.Join(suite.outputFolder, "test.file")
+	os.WriteFile(testFile, fileData, 0755)
+
+	assert.Equal(suite.T(), fileData, FileRead(testFile))
+}
+
+func (suite *UtilsTestSuite) TestFileReadBigFile() {
+	var fileData []byte
+	for i := 0; i < 1024*10000; i++ {
+		fileData = append(fileData, byte(i))
+	}
+
+	testFile := filepath.Join(suite.outputFolder, "test.file")
+	os.WriteFile(testFile, fileData, 0755)
+
+	assert.Equal(suite.T(), fileData, FileRead(testFile))
+}
+
 // FileExists()
 
 func (suite *UtilsTestSuite) TestFileExistsPositive() {

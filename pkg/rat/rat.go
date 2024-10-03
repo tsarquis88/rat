@@ -37,7 +37,7 @@ func Rat(inputFiles []string, outputFile string) {
 
 	var filesToRat []MetadataInput
 	for _, file := range inputFiles {
-		originDir := filepath.Dir(file)
+		originDir := filepath.Dir(strings.TrimSuffix(file, "/"))
 		if IsDir(file) {
 			dirFiles := GetFilesInDir(file, true)
 			for _, dirFile := range dirFiles {

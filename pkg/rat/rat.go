@@ -33,8 +33,6 @@ func GetDataFromManager(fileManager IDataBytesManager, size int64) []byte {
 }
 
 func Rat(inputFiles []string, outputFile string) {
-	fmt.Printf("Rat: %s\n", inputFiles)
-
 	var filesToRat []MetadataInput
 	for _, file := range inputFiles {
 		originDir := filepath.Dir(strings.TrimSuffix(file, "/"))
@@ -55,59 +53,60 @@ func Rat(inputFiles []string, outputFile string) {
 	ratDump := DumpRatMetadata(GenerateRatMetadata(len(filesToRat)))
 
 	for _, file := range filesToRat {
-		fmt.Printf("File to rat: (%s) %s\n", file.originDir, file.filename)
+		fmt.Printf("Rating file: (%s) %s... ", file.originDir, file.filename)
 
 		metadata := GenerateMetadata(file)
 		fileManager := NewDataBytesFileManager(filepath.Join(file.originDir, file.filename))
 		fileData := GetDataFromManager(fileManager, metadata.Size)
 		ratDump = append(ratDump, DumpMetadata(metadata)...)
 		ratDump = append(ratDump, fileData...)
+		fmt.Printf("Done.\n")
 	}
 
 	outExtension := filepath.Ext(outputFile)
 	if outExtension == ".gz" {
 		fmt.Print("Compressing... ")
 		ratDump = GzipCompress(ratDump)
-		fmt.Printf("Done\n")
+		fmt.Printf("Done.\n")
 	}
 
 	if FileExists(outputFile) {
 		panic("Output file exists")
 	}
 
+	fmt.Printf("Writing output file: %s... ", outputFile)
 	NewDataBytesDumper(outputFile, 438).Dump(ratDump)
-	fmt.Printf("Files rated into: %s\n", outputFile)
+	fmt.Printf("Done.\n")
 }
 
 func Derat(filesList []string, outputFolder string) {
 	for _, inputFile := range filesList {
-		fmt.Printf("Derat: %s\n", inputFile)
-
 		var dataBytesManager IDataBytesManager
 		inExtension := filepath.Ext(inputFile)
 		if inExtension == ".gz" {
 			fmt.Print("Decompressing... ")
 			dataBytesManager = NewDataBytesSliceManager(GzipDecompress(FileRead(inputFile)))
-			fmt.Printf("Done\n")
+			fmt.Printf("Done.\n")
 		} else {
 			dataBytesManager = NewDataBytesFileManager(inputFile)
 		}
 
 		ratMetadata := ParseRatDump(dataBytesManager)
-		fmt.Printf("Files found: %d\n", ratMetadata.filesQty)
-
 		for i := 0; i < ratMetadata.filesQty; i++ {
 			metadata := ParseDump(dataBytesManager)
-			fmt.Printf("File found: %s (size = %d, mode = %d)\n", metadata.Filename, metadata.Size, metadata.Mode)
 
+			fmt.Printf("Derating file: %s... ", metadata.Filename)
 			fileData := GetDataFromManager(dataBytesManager, metadata.Size)
+			fmt.Printf("Done.\n")
+
 			err := os.MkdirAll(filepath.Join(outputFolder, filepath.Dir(metadata.Filename)), 0755)
 			if err != nil {
 				panic(err)
 			}
 
-			fmt.Printf("Writing file %s\n", filepath.Join(outputFolder, metadata.Filename))
+			fmt.Printf("Writing output file %s... ", filepath.Join(outputFolder, metadata.Filename))
 			NewDataBytesDumper(filepath.Join(outputFolder, metadata.Filename), os.FileMode(metadata.Mode)).Dump(fileData)
+			fmt.Printf("Done.\n")
 		}
 	}
 }

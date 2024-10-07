@@ -41,7 +41,7 @@ func (suite *MetadataGeneratorTestSuite) TestDumpRatMetadata() {
 // ParseRatDump()
 
 func (suite *MetadataGeneratorTestSuite) TestParseRatDump() {
-	dataBytesManager := NewDataBytesManagerMock([]byte{1})
+	dataBytesManager := NewDataBytesSliceManager([]byte{1})
 	assert.Equal(suite.T(), RatMetadata{1}, ParseRatDump(dataBytesManager))
 }
 
@@ -99,7 +99,7 @@ func (suite *MetadataGeneratorTestSuite) TestParseDump() {
 	dump = append(dump, byte(0))
 	dump = append(dump, []byte("Unread data")...)
 
-	dataBytesManager := NewDataBytesManagerMock(dump)
+	dataBytesManager := NewDataBytesSliceManager(dump)
 
 	assert.Equal(suite.T(), expectedMetadata, ParseDump(dataBytesManager))
 }

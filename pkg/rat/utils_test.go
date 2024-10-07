@@ -33,6 +33,12 @@ func (suite *UtilsTestSuite) TestFileRead() {
 	assert.Equal(suite.T(), fileData, FileRead(testFile))
 }
 
+func (suite *UtilsTestSuite) TestFileReadInexistantFile() {
+	testFile := filepath.Join(suite.outputFolder, "test.file")
+
+	assert.Panics(suite.T(), func() { FileRead(testFile) }, "Should panic")
+}
+
 func (suite *UtilsTestSuite) TestFileReadBigFile() {
 	var fileData []byte
 	for i := 0; i < 1024*10000; i++ {

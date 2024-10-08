@@ -22,6 +22,7 @@ func NewDataBytesFileManager(filename string) DataBytesFileManager {
 func (manager DataBytesFileManager) Read(bytesQty uint) ([]byte, int) {
 	buff := make([]byte, bytesQty)
 	readBytes, err := manager.fileHandle.Read(buff)
+
 	if err != nil && !errors.Is(err, io.EOF) {
 		panic(err)
 	}

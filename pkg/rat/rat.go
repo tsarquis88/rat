@@ -7,8 +7,9 @@ import (
 	"strings"
 )
 
-const CompressionRaw = 00
-const CompressionGzip = 01
+const BlockSize = 512
+
+const DirFileType = 53
 
 func GetDataFromManager(fileManager IDataBytesManager, size int64) []byte {
 	const ReadSize = 1 << (10 * 2) // 1MB
@@ -30,6 +31,25 @@ func GetDataFromManager(fileManager IDataBytesManager, size int64) []byte {
 		}
 	}
 	return data
+}
+
+func validateHeader(data []byte) bool {
+	for _, value := range data {
+		if value != 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func getPaddingIndex(data []byte) uint {
+	var i int
+	for i = len(data) - 1; i >= 0; i = i - 2 {
+		if data[i] != 0 || data[i-1] != 0 {
+			break
+		}
+	}
+	return uint(i)
 }
 
 func Rat(inputFiles []string, outputFile string) {
@@ -81,31 +101,51 @@ func Rat(inputFiles []string, outputFile string) {
 
 func Derat(filesList []string, outputFolder string) {
 	for _, inputFile := range filesList {
+
 		var dataBytesManager IDataBytesManager
 		inExtension := filepath.Ext(inputFile)
 		if inExtension == ".gz" {
 			fmt.Print("Decompressing... ")
 			dataBytesManager = NewDataBytesSliceManager(GzipDecompress(FileRead(inputFile)))
-			fmt.Printf("Done.\n")
+			fmt.Printf("Done\n")
 		} else {
 			dataBytesManager = NewDataBytesFileManager(inputFile)
 		}
 
-		ratMetadata := ParseRatDump(dataBytesManager)
-		for i := 0; i < ratMetadata.filesQty; i++ {
-			metadata := ParseDump(dataBytesManager)
-
-			fmt.Printf("Derating file: %s... ", metadata.Filename)
-			fileData := GetDataFromManager(dataBytesManager, metadata.Size)
-			fmt.Printf("Done.\n")
-
-			err := os.MkdirAll(filepath.Join(outputFolder, filepath.Dir(metadata.Filename)), 0755)
-			if err != nil {
-				panic(err)
+		for {
+			data, _ := dataBytesManager.Read(BlockSize)
+			if !validateHeader(data) {
+				break
 			}
 
-			fmt.Printf("Writing output file %s... ", filepath.Join(outputFolder, metadata.Filename))
-			NewDataBytesDumper(filepath.Join(outputFolder, metadata.Filename), os.FileMode(metadata.Mode)).Dump(fileData)
+			headerRaw := NewHeaderRaw(data)
+			header := NewHeader(headerRaw)
+
+			if header.filetype == DirFileType {
+				err := os.MkdirAll(filepath.Join(outputFolder, filepath.Dir(header.name)), 0755)
+				if err != nil {
+					panic(err)
+				}
+				continue
+			}
+
+			fmt.Printf("Reading file %s (%d)... ", header.name, header.size)
+			var fileData []byte
+			var bytesRead uint
+			for {
+				data, _ := dataBytesManager.Read(BlockSize)
+				fileData = append(fileData, data...)
+				bytesRead = bytesRead + BlockSize
+				if bytesRead >= header.size {
+					break
+				}
+			}
+			fileData = fileData[:getPaddingIndex(fileData)]
+			fmt.Printf("Done.\n")
+
+			outputFile := filepath.Join(outputFolder, header.name)
+			fmt.Printf("Writing output file %s... ", outputFile)
+			NewDataBytesDumper(outputFile, os.FileMode(0664)).Dump(fileData)
 			fmt.Printf("Done.\n")
 		}
 	}

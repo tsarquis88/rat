@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 const BlockSize = 512
 
+const RegulatFileType = 48
 const DirFileType = 53
 
 func GetDataFromManager(fileManager IDataBytesManager, size int64) []byte {
@@ -53,50 +53,49 @@ func getPaddingIndex(data []byte) uint {
 }
 
 func Rat(inputFiles []string, outputFile string) {
-	var filesToRat []MetadataInput
-	for _, file := range inputFiles {
-		originDir := filepath.Dir(strings.TrimSuffix(file, "/"))
-		if IsDir(file) {
-			dirFiles := GetFilesInDir(file, true)
-			for _, dirFile := range dirFiles {
-				filenameWithoutOriginDir := strings.TrimPrefix(dirFile, originDir)
-				if filenameWithoutOriginDir[0] == '/' {
-					filenameWithoutOriginDir = filenameWithoutOriginDir[1:]
-				}
-				filesToRat = append(filesToRat, MetadataInput{filenameWithoutOriginDir, originDir})
-			}
-		} else {
-			filesToRat = append(filesToRat, MetadataInput{filepath.Base(file), originDir})
-		}
-	}
-
-	ratDump := DumpRatMetadata(GenerateRatMetadata(len(filesToRat)))
-
-	for _, file := range filesToRat {
-		fmt.Printf("Rating file: (%s) %s... ", file.originDir, file.filename)
-
-		metadata := GenerateMetadata(file)
-		fileManager := NewDataBytesFileManager(filepath.Join(file.originDir, file.filename))
-		fileData := GetDataFromManager(fileManager, metadata.Size)
-		ratDump = append(ratDump, DumpMetadata(metadata)...)
-		ratDump = append(ratDump, fileData...)
-		fmt.Printf("Done.\n")
-	}
-
-	outExtension := filepath.Ext(outputFile)
-	if outExtension == ".gz" {
-		fmt.Print("Compressing... ")
-		ratDump = GzipCompress(ratDump)
-		fmt.Printf("Done.\n")
-	}
 
 	if FileExists(outputFile) {
 		panic("Output file exists")
 	}
+	outputDumper := NewDataBytesDumper(outputFile, 438)
 
-	fmt.Printf("Writing output file: %s... ", outputFile)
-	NewDataBytesDumper(outputFile, 438).Dump(ratDump)
-	fmt.Printf("Done.\n")
+	for _, file := range inputFiles {
+
+		if IsDir(file) {
+			panic("Folder rating not yet supported")
+		}
+
+		fileHandle, err := os.OpenFile(file, os.O_RDONLY, 0755)
+		if err != nil {
+			panic(err)
+		}
+		stat, err := fileHandle.Stat()
+		if err != nil {
+			panic(err)
+		}
+		header := Header{file, uint32(stat.Mode()), uint(stat.Size()), RegulatFileType}
+		headerRaw := header.ToRaw()
+		outputDumper.Dump(headerRaw.Dump())
+
+		dataManager := NewDataBytesFileManager(file)
+		missingBytes := header.size
+		for {
+			fileData, _ := dataManager.Read(BlockSize)
+			outputDumper.Dump(FillWith(fileData, 0, BlockSize))
+
+			if int(missingBytes-BlockSize) <= 0 {
+				break
+			}
+			missingBytes -= BlockSize
+		}
+	}
+
+	// outExtension := filepath.Ext(outputFile)
+	// if outExtension == ".gz" {
+	// 	fmt.Print("Compressing... ")
+	// 	ratDump = GzipCompress(ratDump)
+	// 	fmt.Printf("Done.\n")
+	// }
 }
 
 func Derat(filesList []string, outputFolder string) {
@@ -119,6 +118,7 @@ func Derat(filesList []string, outputFolder string) {
 			}
 
 			headerRaw := NewHeaderRaw(data)
+			fmt.Println(headerRaw.ToString())
 			header := NewHeader(headerRaw)
 
 			if header.filetype == DirFileType {
@@ -145,6 +145,10 @@ func Derat(filesList []string, outputFolder string) {
 
 			outputFile := filepath.Join(outputFolder, header.name)
 			fmt.Printf("Writing output file %s... ", outputFile)
+			err := os.MkdirAll(filepath.Dir(header.name), 0755)
+			if err != nil {
+				panic(err)
+			}
 			NewDataBytesDumper(outputFile, os.FileMode(0664)).Dump(fileData)
 			fmt.Printf("Done.\n")
 		}

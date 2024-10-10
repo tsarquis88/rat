@@ -6,8 +6,10 @@ import (
 	"crypto/sha256"
 	"errors"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 func FileRead(filepath string) []byte {
@@ -113,4 +115,39 @@ func GzipDecompress(inputData []byte) []byte {
 	}
 
 	return resB.Bytes()
+}
+
+func OctalToDecimal(octal []byte, len int) uint {
+	decimal := uint(0)
+	for i := len - 1; i >= 0; i-- {
+		if octal[i] != 48 {
+			exp := len - 1 - i
+			value := uint(octal[i]-48) * uint(math.Pow(float64(8), float64(exp)))
+			decimal = decimal + value
+		}
+	}
+	return decimal
+}
+
+func DecimalToOctal(decimal uint) []byte {
+	var remainders []byte
+	lastDecimal := decimal
+	for {
+		quotient := lastDecimal / 8
+		remainders = append(remainders, byte(lastDecimal-quotient*8+48))
+		if quotient == 0 {
+			break
+		}
+		lastDecimal = quotient
+	}
+	slices.Reverse(remainders)
+	return remainders
+}
+
+func FillWith(origin []byte, value byte, length uint) []byte {
+	res := origin
+	for i := uint(len(origin)); i < length; i++ {
+		res = append(res, value)
+	}
+	return res
 }

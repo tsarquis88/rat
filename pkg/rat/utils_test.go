@@ -184,6 +184,44 @@ func (suite *UtilsTestSuite) TestGzipCompressDecompress() {
 	assert.Equal(suite.T(), dataOrigin, dataDecompressed)
 }
 
+// OctalToDecimal()
+
+func (suite *UtilsTestSuite) TestOctalToDecimal() {
+	assert.Equal(suite.T(), uint(294), OctalToDecimal([]byte{'4', '4', '6'}, 3))
+	assert.Equal(suite.T(), uint(2054353), OctalToDecimal([]byte{'7', '6', '5', '4', '3', '2', '1'}, 7))
+}
+
+func (suite *UtilsTestSuite) TestOctalToDecimalReducedLen() {
+	assert.Equal(suite.T(), uint(36), OctalToDecimal([]byte{'4', '4', '6'}, 2))
+	assert.Equal(suite.T(), uint(501), OctalToDecimal([]byte{'7', '6', '5', '4', '3', '2', '1'}, 3))
+}
+
+func (suite *UtilsTestSuite) TestOctalToDecimalOutOfIndex() {
+	assert.Panics(suite.T(), func() { OctalToDecimal([]byte{'7', '6', '5', '4', '3', '2', '1'}, 9) }, "Should panic")
+}
+
+// DecimalToOctal()
+
+func (suite *UtilsTestSuite) TestDecimalToOctal() {
+	assert.Equal(suite.T(), []byte{'1', '4', '4'}, DecimalToOctal(100))
+	assert.Equal(suite.T(), []byte{'7', '2', '6', '7', '4', '6', '4', '2', '6', '1'}, DecimalToOctal(987654321))
+}
+
+// FillWith()
+
+func (suite *UtilsTestSuite) TestFillWith() {
+	assert.Equal(suite.T(), []byte{1, 2, 3, 4}, FillWith([]byte{1, 2, 3}, 4, 4))
+	assert.Equal(suite.T(), []byte{'A', 'X', 'X', 'X', 'X'}, FillWith([]byte{'A'}, 'X', 5))
+}
+
+func (suite *UtilsTestSuite) TestFillWithReducedLen() {
+	assert.Equal(suite.T(), []byte{1, 2, 3}, FillWith([]byte{1, 2, 3}, 4, 1))
+}
+
+func (suite *UtilsTestSuite) TestFillWithEmpty() {
+	assert.Equal(suite.T(), []byte{4, 4, 4}, FillWith([]byte{}, 4, 3))
+}
+
 // TestUtilsTestSuite()
 
 func TestUtilsTestSuite(t *testing.T) {

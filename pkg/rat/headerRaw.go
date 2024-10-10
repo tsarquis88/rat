@@ -72,8 +72,8 @@ func (header *HeaderRaw) Dump() []byte {
 func (header *HeaderRaw) ToString() string {
 	return fmt.Sprintf("Name: %x (%s)", header.name, header.name) +
 		fmt.Sprintf("\nMode: %s (%d)", header.mode, header.mode) +
-		fmt.Sprintf("\nUID: %x", header.uid) +
-		fmt.Sprintf("\nGID: %x", header.gid) +
+		fmt.Sprintf("\nUID: %s (%d)", header.uid, header.uid) +
+		fmt.Sprintf("\nGID: %s (%d)", header.gid, header.gid) +
 		fmt.Sprintf("\nSize: %x (%d)", header.size, header.size) +
 		fmt.Sprintf("\nMtime: %x", header.mtime) +
 		fmt.Sprintf("\nChksum: %x", header.chksum) +
@@ -81,8 +81,8 @@ func (header *HeaderRaw) ToString() string {
 		fmt.Sprintf("\nLinkname: %x", header.linkname) +
 		fmt.Sprintf("\nMagic: %x", header.magic) +
 		fmt.Sprintf("\nVersion: %x", header.version) +
-		fmt.Sprintf("\nUname: %x", header.uname) +
-		fmt.Sprintf("\nGname: %x", header.gname) +
+		fmt.Sprintf("\nUname: %x (%s)", header.uname, header.uname) +
+		fmt.Sprintf("\nGname: %x (%s)", header.gname, header.gname) +
 		fmt.Sprintf("\nDevmajor: %x", header.devmajor) +
 		fmt.Sprintf("\nDevminor: %x", header.devminor) +
 		fmt.Sprintf("\nPrefix: %x", header.prefix)

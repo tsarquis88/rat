@@ -73,7 +73,7 @@ func Rat(inputFiles []string, outputFile string) {
 		if err != nil {
 			panic(err)
 		}
-		header := Header{file, uint32(stat.Mode()), uint(stat.Size()), RegulatFileType}
+		header := NewHeader(stat, RegulatFileType)
 		headerRaw := header.ToRaw()
 		outputDumper.Dump(headerRaw.Dump())
 
@@ -119,7 +119,7 @@ func Derat(filesList []string, outputFolder string) {
 
 			headerRaw := NewHeaderRaw(data)
 			fmt.Println(headerRaw.ToString())
-			header := NewHeader(headerRaw)
+			header := NewHeaderFromRaw(headerRaw)
 
 			if header.filetype == DirFileType {
 				err := os.MkdirAll(filepath.Join(outputFolder, filepath.Dir(header.name)), 0755)

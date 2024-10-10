@@ -3,13 +3,38 @@ package rat
 import (
 	"encoding/binary"
 	"fmt"
+	"io/fs"
+	"syscall"
 )
 
 type Header struct {
 	name     string
 	mode     uint32
+	uid		 uint32
+	gid		 uint32
 	size     uint
 	filetype uint8
+}
+
+func NewHeader(fileStat fs.FileInfo, fileType uint8) Header {
+	uid, gid := getIds(fileStat)
+	return Header{
+		fileStat.Name(),
+		uint32(fileStat.Mode()),
+		uid,
+		gid,
+		uint(fileStat.Size()),
+		RegulatFileType,
+	}
+}
+
+func getIds(fileStat fs.FileInfo) (UID uint32, GID uint32) {
+	if stat, ok := fileStat.Sys().(*syscall.Stat_t); ok {
+		UID = stat.Uid
+		GID = stat.Gid
+		return
+	}
+	panic("Couldn't get UID and GID")
 }
 
 func trimPadding(value []byte) string {
@@ -52,8 +77,24 @@ func getNameRaw(value string) []byte {
 	return FillWith([]byte(value), 0, 100)
 }
 
-func NewHeader(headerRaw HeaderRaw) Header {
-	return Header{trimPadding(headerRaw.name), getMode(headerRaw.mode), OctalToDecimal(headerRaw.size, 11), headerRaw.typeflag}
+func getIdRaw(value uint32) []byte {
+	idSlice := FillWith([]byte{}, 48, 8)
+	idSlice[len(idSlice)-1] = 0
+	octal := DecimalToOctal(uint(value))
+	for i := len(octal) - 1; i >= 0; i-- {
+		idSlice[len(idSlice)-(len(octal)-i)-1] = octal[i]
+	}
+	return idSlice
+}
+
+func NewHeaderFromRaw(headerRaw HeaderRaw) Header {
+	return Header{
+		trimPadding(headerRaw.name),
+		getMode(headerRaw.mode),
+		getMode(headerRaw.uid),
+		getMode(headerRaw.gid),
+		OctalToDecimal(headerRaw.size, 11),
+		headerRaw.typeflag}
 }
 
 func (header *Header) ToString() string {
@@ -62,11 +103,6 @@ func (header *Header) ToString() string {
 
 func (header *Header) ToRaw() HeaderRaw {
 	var rawHeader HeaderRaw
-	rawHeader.name = make([]byte, 100)
-	rawHeader.mode = make([]byte, 8)
-	rawHeader.uid = make([]byte, 8)
-	rawHeader.gid = make([]byte, 8)
-	rawHeader.size = make([]byte, 12)
 	rawHeader.mtime = make([]byte, 12)
 	rawHeader.chksum = make([]byte, 8)
 	rawHeader.typeflag = byte(0)
@@ -81,6 +117,8 @@ func (header *Header) ToRaw() HeaderRaw {
 
 	rawHeader.name = getNameRaw(header.name)
 	rawHeader.mode = getModeRaw(header.mode)
+	rawHeader.uid = getIdRaw(header.uid)
+	rawHeader.gid = getIdRaw(header.gid)
 	rawHeader.size = getSizeRaw(header.size)
 	rawHeader.typeflag = header.filetype
 	return rawHeader

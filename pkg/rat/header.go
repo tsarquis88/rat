@@ -89,7 +89,7 @@ func dumpMagic() []byte {
 func getName(id uint32) string {
 	user, err := user.LookupId(strconv.Itoa(int(id)))
 	if err != nil {
-		panic(err)
+		return ""
 	}
 	return user.Name
 }

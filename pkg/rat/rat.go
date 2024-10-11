@@ -90,6 +90,11 @@ func Rat(inputFiles []string, outputFile string) {
 		}
 	}
 
+	fileSuffix := FillWith([]byte{}, 0, BlockSize)
+	for i := 0; i < 18; i++ {
+		outputDumper.Dump(fileSuffix)
+	}
+
 	// outExtension := filepath.Ext(outputFile)
 	// if outExtension == ".gz" {
 	// 	fmt.Print("Compressing... ")

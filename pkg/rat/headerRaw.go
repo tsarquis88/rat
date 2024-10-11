@@ -75,12 +75,12 @@ func (header *HeaderRaw) ToString() string {
 		fmt.Sprintf("\nUID: %s (%d)", header.uid, header.uid) +
 		fmt.Sprintf("\nGID: %s (%d)", header.gid, header.gid) +
 		fmt.Sprintf("\nSize: %x (%d)", header.size, header.size) +
-		fmt.Sprintf("\nMtime: %x", header.mtime) +
-		fmt.Sprintf("\nChksum: %x", header.chksum) +
+		fmt.Sprintf("\nMtime: %s (%d)", header.mtime, header.mtime) +
+		fmt.Sprintf("\nChksum: %s (%d)", header.chksum, header.chksum) +
 		fmt.Sprintf("\nTypeflag: %c", header.typeflag) +
 		fmt.Sprintf("\nLinkname: %x", header.linkname) +
-		fmt.Sprintf("\nMagic: %x", header.magic) +
-		fmt.Sprintf("\nVersion: %x", header.version) +
+		fmt.Sprintf("\nMagic: %s (%d)", header.magic, header.magic) +
+		fmt.Sprintf("\nVersion: %s (%d)", header.version, header.version) +
 		fmt.Sprintf("\nUname: %x (%s)", header.uname, header.uname) +
 		fmt.Sprintf("\nGname: %x (%s)", header.gname, header.gname) +
 		fmt.Sprintf("\nDevmajor: %x", header.devmajor) +

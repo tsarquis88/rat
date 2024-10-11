@@ -4,20 +4,28 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/fs"
+	"os/user"
+	"strconv"
 	"syscall"
 )
 
 type Header struct {
 	name     string
 	mode     uint32
-	uid		 uint32
-	gid		 uint32
+	uid      uint32
+	gid      uint32
 	size     uint
 	filetype uint8
+	uname    string
+	gname    string
+	mktime   uint
 }
 
 func NewHeader(fileStat fs.FileInfo, fileType uint8) Header {
 	uid, gid := getIds(fileStat)
+	uname := getName(uid)
+	gname := getName(gid)
+
 	return Header{
 		fileStat.Name(),
 		uint32(fileStat.Mode()),
@@ -25,7 +33,26 @@ func NewHeader(fileStat fs.FileInfo, fileType uint8) Header {
 		gid,
 		uint(fileStat.Size()),
 		RegulatFileType,
+		uname,
+		gname,
+		getMktime(fileStat),
 	}
+}
+
+func getName(id uint32) string {
+
+	user, err := user.LookupId(strconv.Itoa(int(id)))
+	if err != nil {
+		panic(err)
+	}
+	return user.Name
+}
+
+func getMktime(fileStat fs.FileInfo) uint {
+	if stat, ok := fileStat.Sys().(*syscall.Stat_t); ok {
+		return uint(stat.Mtim.Sec)
+	}
+	panic("Couldn't get mktime")
 }
 
 func getIds(fileStat fs.FileInfo) (UID uint32, GID uint32) {
@@ -77,6 +104,10 @@ func getNameRaw(value string) []byte {
 	return FillWith([]byte(value), 0, 100)
 }
 
+func getUnameRaw(value string) []byte {
+	return FillWith([]byte(value), 0, 32)
+}
+
 func getIdRaw(value uint32) []byte {
 	idSlice := FillWith([]byte{}, 48, 8)
 	idSlice[len(idSlice)-1] = 0
@@ -87,6 +118,14 @@ func getIdRaw(value uint32) []byte {
 	return idSlice
 }
 
+func getMagicRaw() []byte {
+	return []byte{'u', 's', 't', 'a', 'r', 32}
+}
+
+func getVersionRaw() []byte {
+	return []byte{32, 0}
+}
+
 func NewHeaderFromRaw(headerRaw HeaderRaw) Header {
 	return Header{
 		trimPadding(headerRaw.name),
@@ -94,7 +133,37 @@ func NewHeaderFromRaw(headerRaw HeaderRaw) Header {
 		getMode(headerRaw.uid),
 		getMode(headerRaw.gid),
 		OctalToDecimal(headerRaw.size, 11),
-		headerRaw.typeflag}
+		headerRaw.typeflag,
+		trimPadding(headerRaw.uname),
+		trimPadding(headerRaw.gname),
+		uint(binary.LittleEndian.Uint64(headerRaw.mtime)),
+	}
+}
+
+func getMktimeRaw(value uint) []byte {
+	timeSlice := FillWith([]byte{}, 48, 12)
+	timeSlice[len(timeSlice)-1] = 0
+	octal := DecimalToOctal(value)
+	for i := len(octal) - 1; i >= 0; i-- {
+		timeSlice[len(timeSlice)-(len(octal)-i)-1] = octal[i]
+	}
+	return timeSlice
+}
+
+func getChksum(header HeaderRaw) []byte {
+	return []byte{48, 49, 50, 52, 54, 55, 0, 32}
+	// return FillWith([]byte{}, 0, 8)
+	// dump := header.Dump()
+	// fmt.Println(len(dump))
+	// acc := uint64(0)
+	// for idx := 0; idx < 512; idx = idx+8{
+	// 	acc = acc + binary.LittleEndian.Uint64(dump[idx:idx+8])
+	// }
+	// fmt.Println(acc)
+
+	// chksum := []byte{}
+	// binary.LittleEndian.PutUint64(chksum, acc)
+	// return chksum
 }
 
 func (header *Header) ToString() string {
@@ -103,14 +172,8 @@ func (header *Header) ToString() string {
 
 func (header *Header) ToRaw() HeaderRaw {
 	var rawHeader HeaderRaw
-	rawHeader.mtime = make([]byte, 12)
-	rawHeader.chksum = make([]byte, 8)
-	rawHeader.typeflag = byte(0)
+	rawHeader.chksum = FillWith([]byte{}, 32, 8)
 	rawHeader.linkname = make([]byte, 100)
-	rawHeader.magic = make([]byte, 6)
-	rawHeader.version = make([]byte, 2)
-	rawHeader.uname = make([]byte, 32)
-	rawHeader.gname = make([]byte, 32)
 	rawHeader.devmajor = make([]byte, 8)
 	rawHeader.devminor = make([]byte, 8)
 	rawHeader.prefix = make([]byte, 155)
@@ -120,6 +183,12 @@ func (header *Header) ToRaw() HeaderRaw {
 	rawHeader.uid = getIdRaw(header.uid)
 	rawHeader.gid = getIdRaw(header.gid)
 	rawHeader.size = getSizeRaw(header.size)
+	rawHeader.uname = getUnameRaw(header.uname)
+	rawHeader.gname = getUnameRaw(header.gname)
+	rawHeader.magic = getMagicRaw()
+	rawHeader.version = getVersionRaw()
+	rawHeader.mtime = getMktimeRaw(header.mktime)
 	rawHeader.typeflag = header.filetype
+	rawHeader.chksum = getChksum(rawHeader)
 	return rawHeader
 }

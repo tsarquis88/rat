@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 )
 
 func FileRead(filepath string) []byte {
@@ -154,4 +155,11 @@ func FillWith(origin []byte, value byte, length uint) []byte {
 		res = append(res, value)
 	}
 	return res
+}
+
+func TrimPrefixRecursive(s string, prefix string) string {
+	if !strings.HasPrefix(s, prefix) {
+		return s
+	}
+	return TrimPrefixRecursive(s[len(prefix):], prefix)
 }

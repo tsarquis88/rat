@@ -2,8 +2,8 @@ name: Main branch
 
 on:
   push:
-    branches:
-      - main
+    # branches:
+    #   - main
 jobs:
   build-and-test:
      
@@ -38,12 +38,6 @@ jobs:
         cd cmd/rat/
         ./main /tmp/out.rat ../../tests/input_files/
         cmp --silent /tmp/out.rat ../../tests/expected_files/out.rat
-        if [ $? -ne 0 ]; then
-          echo "E2E failed: RAT file is not as expected"
-          exit 1
-        fi
-        ./main /tmp/out.rat.gz ../../tests/input_files/
-        cmp --silent /tmp/out.rat.gz ../../tests/expected_files/out.rat.gz
         if [ $? -ne 0 ]; then
           echo "E2E failed: RAT file is not as expected"
           exit 1

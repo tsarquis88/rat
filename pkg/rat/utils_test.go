@@ -246,6 +246,14 @@ func (suite *UtilsTestSuite) TestFillWithEmpty() {
 	assert.Equal(suite.T(), []byte{4, 4, 4}, FillWith([]byte{}, 4, 3))
 }
 
+// TrimPrefixRecursive()
+
+func (suite *UtilsTestSuite) TestTrimPrefixRecursive() {
+	assert.Equal(suite.T(), "folder/file.json", TrimPrefixRecursive("../../folder/file.json", "../"))
+	assert.Equal(suite.T(), "folder/file.json", TrimPrefixRecursive("../folder/file.json", "../"))
+	assert.Equal(suite.T(), "folder/file.json", TrimPrefixRecursive("folder/file.json", "../"))
+}
+
 // TestUtilsTestSuite()
 
 func TestUtilsTestSuite(t *testing.T) {

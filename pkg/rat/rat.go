@@ -8,30 +8,8 @@ import (
 
 const BlockSize = 512
 
-const RegulatFileType = 48
-const DirFileType = 53
-
-func GetDataFromManager(fileManager IDataBytesManager, size int64) []byte {
-	const ReadSize = 1 << (10 * 2) // 1MB
-	var data []byte
-	if size <= ReadSize {
-		buffer, _ := fileManager.Read(uint(size))
-		data = append(data, buffer...)
-	} else {
-		missingBytes := size
-		for {
-			bytesToRead := min(ReadSize, missingBytes)
-			buffer, _ := fileManager.Read(uint(bytesToRead))
-			data = append(data, buffer...)
-			missingBytes -= int64(bytesToRead)
-
-			if missingBytes <= 0 {
-				break
-			}
-		}
-	}
-	return data
-}
+const RegularFileType = '0'
+const DirFileType = '5'
 
 func trimPadding(value []byte) string {
 	var paddingIdx int
@@ -50,16 +28,6 @@ func validateHeader(data []byte) bool {
 		}
 	}
 	return false
-}
-
-func getPaddingIndex(data []byte) uint {
-	var i int
-	for i = len(data) - 1; i >= 0; i = i - 2 {
-		if data[i] != 0 || data[i-1] != 0 {
-			break
-		}
-	}
-	return uint(i)
 }
 
 func convertMode(value []byte) uint32 {
@@ -154,12 +122,12 @@ func Derat(filesList []string, outputFolder string) {
 					break
 				}
 			}
-			fileData = fileData[:getPaddingIndex(fileData)]
+			fileData = fileData[:size]
 			fmt.Printf("Done.\n")
 
 			outputFile := filepath.Join(outputFolder, filename)
 			fmt.Printf("Writing output file %s... ", outputFile)
-			err := os.MkdirAll(filepath.Dir(filename), 0755)
+			err := os.MkdirAll(filepath.Dir(outputFile), 0755)
 			if err != nil {
 				panic(err)
 			}

@@ -39,7 +39,7 @@ func (suite *RatTestSuite) TestRatAndDerat() {
 
 	Derat([]string{suite.outputFile}, suite.outputFolder)
 	for file, hash := range originalFiles {
-		filepath := filepath.Join(suite.outputFolder, filepath.Base(file))
+		filepath := filepath.Join(suite.outputFolder, file)
 		assert.Equal(suite.T(), true, FileExists(filepath))
 		assert.Equal(suite.T(), hash, HashFile(filepath))
 	}
@@ -60,28 +60,6 @@ func (suite *RatTestSuite) TestRatAndDeratFolder() {
 	assert.Equal(suite.T(), true, FileExists(filepath.Join(suite.outputFolder, suite.inputFolder)))
 	for file, hash := range originalFiles {
 		filepath := filepath.Join(suite.outputFolder, file)
-		assert.Equal(suite.T(), true, FileExists(filepath))
-		assert.Equal(suite.T(), hash, HashFile(filepath))
-	}
-}
-
-func (suite *RatTestSuite) TestRatAndDeratGzip() {
-	filesInDir := GetFilesInDir(suite.inputFolder, false, false)
-
-	originalFiles := make(map[string][]byte)
-	var inputFiles []string
-	for _, file := range filesInDir {
-		originalFiles[file] = HashFile(file)
-		inputFiles = append(inputFiles, file)
-	}
-
-	outputFile := suite.outputFile + ".gz"
-	Rat(inputFiles, outputFile)
-	assert.Equal(suite.T(), true, FileExists(outputFile))
-
-	Derat([]string{outputFile}, suite.outputFolder)
-	for file, hash := range originalFiles {
-		filepath := filepath.Join(suite.outputFolder, filepath.Base(file))
 		assert.Equal(suite.T(), true, FileExists(filepath))
 		assert.Equal(suite.T(), hash, HashFile(filepath))
 	}

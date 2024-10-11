@@ -3,6 +3,7 @@ package rat
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,10 +34,10 @@ func (suite *HeaderTestSuite) TestNewHeaderFromFile() {
 
 	header := NewHeaderFromFile(suite.testFile)
 
-	expectedName := FillWith([]byte(suite.fileName), 0, NameLen)
+	expectedName := FillWith([]byte(strings.TrimPrefix(suite.testFile, "/")), 0, NameLen)
 	expectedMode := []byte{'0', '0', '0', '0', '7', '5', '5', 0}
 	expectedSize := []byte{'0', '0', '0', '0', '0', '0', '0', '1', '7', '5', '0', 0}
-	expectedTypeflag := uint8(RegulatFileType)
+	expectedTypeflag := uint8(RegularFileType)
 	expectedMagic := []byte{'u', 's', 't', 'a', 'r', 32}
 	expectedVersion := []byte{32, 0}
 
@@ -57,7 +58,7 @@ func (suite *HeaderTestSuite) TestNewHeaderFromDump() {
 	expectedName := FillWith([]byte(suite.fileName), 0, NameLen)
 	expectedMode := []byte{'0', '0', '0', '0', '7', '5', '5', 0}
 	expectedSize := []byte{'0', '0', '0', '0', '0', '0', '0', '1', '7', '5', '0', 0}
-	expectedTypeflag := uint8(RegulatFileType)
+	expectedTypeflag := uint8(RegularFileType)
 	expectedMagic := []byte{'u', 's', 't', 'a', 'r', 32}
 	expectedVersion := []byte{32, 0}
 

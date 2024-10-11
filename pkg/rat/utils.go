@@ -47,17 +47,21 @@ func IsDir(filePath string) bool {
 	return fi.Mode().IsDir()
 }
 
-func GetFilesInDir(dirPath string, recursive bool) []string {
+func GetFilesInDir(dirPath string, recursive bool, includeDir bool) []string {
 	dirHandle, err := os.ReadDir(dirPath)
 	if err != nil {
 		panic(err)
 	}
 	var filesList []string
+	if includeDir {
+		filesList = append(filesList, dirPath)
+	}
+
 	for _, file := range dirHandle {
 		fileWithFolder := filepath.Join(dirPath, file.Name())
 		if IsDir(fileWithFolder) {
 			if recursive {
-				filesList = append(filesList, GetFilesInDir(fileWithFolder, true)...)
+				filesList = append(filesList, GetFilesInDir(fileWithFolder, true, includeDir)...)
 			}
 		} else {
 			filesList = append(filesList, fileWithFolder)

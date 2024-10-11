@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
@@ -106,15 +107,22 @@ func NewHeaderFromFile(file string) Header {
 
 	uid, gid := getIds(fileStat)
 
+	typeflag := byte(0)
+	if IsDir(file) {
+		typeflag = DirFileType
+	}
+
+	filename := strings.TrimPrefix(file, "/")
+
 	var header Header
-	header.name = FillWith([]byte(fileStat.Name()), 0, NameLen)
+	header.name = FillWith([]byte(filename), 0, NameLen)
 	header.mode = dumpMode(uint32(fileStat.Mode()))
 	header.uid = dumpValue(uint(uid), UidLen)
 	header.gid = dumpValue(uint(gid), GidLen)
 	header.size = dumpValue(uint(fileStat.Size()), SizeLen)
 	header.mtime = dumpValue(getMtime(fileStat), MtimeLen)
 	header.chksum = make([]byte, ChksumLen)
-	header.typeflag = byte(RegulatFileType)
+	header.typeflag = typeflag
 	header.linkname = FillWith([]byte{}, 0, LinknameLen)
 	header.magic = dumpMagic()
 	header.version = FillWith([]byte{32}, 0, VersionLen)

@@ -62,21 +62,41 @@ func getPaddingIndex(data []byte) uint {
 	return uint(i)
 }
 
+func convertMode(value []byte) uint32 {
+	var mode uint32
+	mode += (uint32(value[6]) - 48)
+	mode += (uint32(value[5]) - 48) << 3
+	mode += (uint32(value[4]) - 48) << 6
+	return mode
+}
+
 func Rat(inputFiles []string, outputFile string) {
 
 	if FileExists(outputFile) {
 		panic("Output file exists")
 	}
+	outExtension := filepath.Ext(outputFile)
+	if outExtension == ".gz" {
+		panic("Rat compression not yet supported")
+	}
 	outputDumper := NewDataBytesDumper(outputFile, 438)
 
+	var filesToRat []string
 	for _, file := range inputFiles {
-
 		if IsDir(file) {
-			panic("Folder rating not yet supported")
+			filesToRat = append(filesToRat, GetFilesInDir(file, true, true)...)
+		} else {
+			filesToRat = append(filesToRat, file)
 		}
+	}
 
+	for _, file := range filesToRat {
 		header := NewHeaderFromFile(file)
 		outputDumper.Dump(header.Dump())
+
+		if header.typeflag == DirFileType {
+			continue
+		}
 
 		dataManager := NewDataBytesFileManager(file)
 		missingBytes := OctalToDecimal(header.size, 11)
@@ -90,18 +110,6 @@ func Rat(inputFiles []string, outputFile string) {
 			missingBytes -= BlockSize
 		}
 	}
-
-	fileSuffix := FillWith([]byte{}, 0, BlockSize)
-	for i := 0; i < 18; i++ {
-		outputDumper.Dump(fileSuffix)
-	}
-
-	// outExtension := filepath.Ext(outputFile)
-	// if outExtension == ".gz" {
-	// 	fmt.Print("Compressing... ")
-	// 	ratDump = GzipCompress(ratDump)
-	// 	fmt.Printf("Done.\n")
-	// }
 }
 
 func Derat(filesList []string, outputFolder string) {
@@ -124,7 +132,6 @@ func Derat(filesList []string, outputFolder string) {
 			}
 
 			header := NewHeaderFromDump(data)
-			fmt.Println(header.ToString())
 
 			filename := trimPadding(header.name)
 			if header.typeflag == DirFileType {
@@ -156,7 +163,7 @@ func Derat(filesList []string, outputFolder string) {
 			if err != nil {
 				panic(err)
 			}
-			NewDataBytesDumper(outputFile, os.FileMode(0664)).Dump(fileData)
+			NewDataBytesDumper(outputFile, os.FileMode(convertMode(header.mode))).Dump(fileData)
 			fmt.Printf("Done.\n")
 		}
 	}

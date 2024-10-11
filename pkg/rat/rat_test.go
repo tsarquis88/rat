@@ -25,7 +25,7 @@ func (suite *RatTestSuite) TearDownTest() {
 }
 
 func (suite *RatTestSuite) TestRatAndDerat() {
-	filesInDir := GetFilesInDir(suite.inputFolder, false)
+	filesInDir := GetFilesInDir(suite.inputFolder, false, false)
 
 	originalFiles := make(map[string][]byte)
 	var inputFiles []string
@@ -46,7 +46,7 @@ func (suite *RatTestSuite) TestRatAndDerat() {
 }
 
 func (suite *RatTestSuite) TestRatAndDeratFolder() {
-	filesInDir := GetFilesInDir(suite.inputFolder, false)
+	filesInDir := GetFilesInDir(suite.inputFolder, false, false)
 
 	originalFiles := make(map[string][]byte)
 	for _, file := range filesInDir {
@@ -66,7 +66,7 @@ func (suite *RatTestSuite) TestRatAndDeratFolder() {
 }
 
 func (suite *RatTestSuite) TestRatAndDeratGzip() {
-	filesInDir := GetFilesInDir(suite.inputFolder, false)
+	filesInDir := GetFilesInDir(suite.inputFolder, false, false)
 
 	originalFiles := make(map[string][]byte)
 	var inputFiles []string
@@ -88,7 +88,7 @@ func (suite *RatTestSuite) TestRatAndDeratGzip() {
 }
 
 func (suite *RatTestSuite) TestRatOutputFileExists() {
-	filesInDir := GetFilesInDir(suite.inputFolder, false)
+	filesInDir := GetFilesInDir(suite.inputFolder, false, false)
 	os.WriteFile(suite.outputFile, []byte("12345"), 0755)
 
 	assert.Panics(suite.T(), func() { Rat(filesInDir, suite.outputFile) }, "Should panic")

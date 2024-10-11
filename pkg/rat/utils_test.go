@@ -97,7 +97,7 @@ func (suite *UtilsTestSuite) TestIsDirNegativeInexistant() {
 // GetFilesInDir()
 
 func (suite *UtilsTestSuite) TestGetFilesInDirNoFiles() {
-	assert.Equal(suite.T(), 0, len(GetFilesInDir(suite.outputFolder, false)))
+	assert.Equal(suite.T(), 0, len(GetFilesInDir(suite.outputFolder, false, false)))
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirOneFile() {
@@ -105,7 +105,15 @@ func (suite *UtilsTestSuite) TestGetFilesInDirOneFile() {
 	os.WriteFile(filePathA, []byte("12345"), 0755)
 
 	expectedFiles := []string{filePathA}
-	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, false))
+	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, false, false))
+}
+
+func (suite *UtilsTestSuite) TestGetFilesInDirOneFileIncludeDirs() {
+	filePathA := filepath.Join(suite.outputFolder, "fileA")
+	os.WriteFile(filePathA, []byte("12345"), 0755)
+
+	expectedFiles := []string{suite.outputFolder, filePathA}
+	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, false, true))
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFiles() {
@@ -117,7 +125,7 @@ func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFiles() {
 	os.WriteFile(filePathC, []byte(",.-{}"), 0755)
 
 	expectedFiles := []string{filePathA, filePathB, filePathC}
-	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, false))
+	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, false, false))
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFilesWithDir() {
@@ -133,11 +141,11 @@ func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFilesWithDir() {
 	os.WriteFile(filePathD, []byte("___"), 0755)
 
 	expectedFiles := []string{filePathA, filePathB, filePathC}
-	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, false))
+	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, false, false))
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirInexistantDir() {
-	assert.Panics(suite.T(), func() { GetFilesInDir(suite.outputFolder+"folder", false) }, "Should panic")
+	assert.Panics(suite.T(), func() { GetFilesInDir(suite.outputFolder+"folder", false, false) }, "Should panic")
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFilesWithDirRecursive() {
@@ -153,7 +161,23 @@ func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFilesWithDirRecursive() {
 	os.WriteFile(filePathD, []byte("___"), 0755)
 
 	expectedFiles := []string{filePathA, filePathB, filePathC, filePathD}
-	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, true))
+	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, true, false))
+}
+
+func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFilesWithDirRecursiveIncludeDirs() {
+	filePathA := filepath.Join(suite.outputFolder, "fileA")
+	filePathB := filepath.Join(suite.outputFolder, "fileB")
+	filePathC := filepath.Join(suite.outputFolder, "fileC")
+	folderPath := filepath.Join(suite.outputFolder, "folder")
+	filePathD := filepath.Join(folderPath, "fileD")
+	os.WriteFile(filePathA, []byte("12345"), 0755)
+	os.WriteFile(filePathB, []byte("ABCDE"), 0755)
+	os.WriteFile(filePathC, []byte(",.-{}"), 0755)
+	os.Mkdir(folderPath, 0755)
+	os.WriteFile(filePathD, []byte("___"), 0755)
+
+	expectedFiles := []string{suite.outputFolder, filePathA, filePathB, filePathC, folderPath, filePathD}
+	assert.Equal(suite.T(), expectedFiles, GetFilesInDir(suite.outputFolder, true, true))
 }
 
 // HashFile()

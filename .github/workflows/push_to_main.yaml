@@ -17,16 +17,11 @@ jobs:
       with:
         go-version: '1.23'
 
-    - id: test-rat-package
-      name: Test rat package
+    - name: Test rat package
       run: |
-        TEST_RESULT=$(cd pkg/rat/ && go mod tidy && go test -v -cover)
-        echo "results=$TEST_RESULT" >> "$GITHUB_OUTPUT"
-
-    - name: Check coverage
-      run: |
-        RESULTS=${{ steps.test-rat-package.outputs.results }}
-        PERCENTAGE=$(echo $RESULTS | tail -2 | head -1 | awk '{printf $2}' | head -c 2)
+        cd pkg/rat/ && go mod tidy && go test -v -cover > tests.results
+        cat tests.results
+        PERCENTAGE=$(cat tests.results | tail -2 | head -1 | awk '{printf $2}' | head -c 2)
         if [ "${PERCENTAGE}" -lt "90" ]; then
             echo "Code coverage ($PERCENTAGE%) is not high enough";
             exit 1

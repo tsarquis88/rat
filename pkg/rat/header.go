@@ -1,58 +1,47 @@
 package rat
 
 import (
-	"encoding/binary"
 	"fmt"
 	"io/fs"
+	"os"
 	"os/user"
 	"strconv"
 	"syscall"
 )
 
+const NameLen = 100
+const ModeLen = 8
+const UidLen = 8
+const GidLen = 8
+const SizeLen = 12
+const MtimeLen = 12
+const ChksumLen = 8
+const LinknameLen = 100
+const MagicLen = 6
+const VersionLen = 2
+const UnameLen = 32
+const GnameLen = 32
+const DevmajorLen = 8
+const DevminorLen = 8
+const PrefixLen = 155
+
 type Header struct {
-	name     string
-	mode     uint32
-	uid      uint32
-	gid      uint32
-	size     uint
-	filetype uint8
-	uname    string
-	gname    string
-	mktime   uint
-}
-
-func NewHeader(fileStat fs.FileInfo, fileType uint8) Header {
-	uid, gid := getIds(fileStat)
-	uname := getName(uid)
-	gname := getName(gid)
-
-	return Header{
-		fileStat.Name(),
-		uint32(fileStat.Mode()),
-		uid,
-		gid,
-		uint(fileStat.Size()),
-		RegulatFileType,
-		uname,
-		gname,
-		getMktime(fileStat),
-	}
-}
-
-func getName(id uint32) string {
-
-	user, err := user.LookupId(strconv.Itoa(int(id)))
-	if err != nil {
-		panic(err)
-	}
-	return user.Name
-}
-
-func getMktime(fileStat fs.FileInfo) uint {
-	if stat, ok := fileStat.Sys().(*syscall.Stat_t); ok {
-		return uint(stat.Mtim.Sec)
-	}
-	panic("Couldn't get mktime")
+	name     []byte
+	mode     []byte
+	uid      []byte
+	gid      []byte
+	size     []byte
+	mtime    []byte
+	chksum   []byte
+	typeflag byte
+	linkname []byte
+	magic    []byte
+	version  []byte
+	uname    []byte
+	gname    []byte
+	devmajor []byte
+	devminor []byte
+	prefix   []byte
 }
 
 func getIds(fileStat fs.FileInfo) (UID uint32, GID uint32) {
@@ -64,21 +53,7 @@ func getIds(fileStat fs.FileInfo) (UID uint32, GID uint32) {
 	panic("Couldn't get UID and GID")
 }
 
-func trimPadding(value []byte) string {
-	var paddingIdx int
-	for paddingIdx = 0; paddingIdx < len(value); paddingIdx++ {
-		if value[paddingIdx] == 0 {
-			break
-		}
-	}
-	return string(value[:paddingIdx])
-}
-
-func getMode(value []byte) uint32 {
-	return binary.LittleEndian.Uint32(value)
-}
-
-func getModeRaw(value uint32) []byte {
+func dumpMode(value uint32) []byte {
 	usersMode := byte(value & 0b00000111)
 	groupMode := byte((value & 0b00111000) >> 3)
 	ownerMode := byte((value & 0b111000000) >> 6)
@@ -90,105 +65,128 @@ func getModeRaw(value uint32) []byte {
 	return modeSlice
 }
 
-func getSizeRaw(value uint) []byte {
-	sizeSlice := FillWith([]byte{}, 48, 12)
-	sizeSlice[len(sizeSlice)-1] = 0
-	octal := DecimalToOctal(value)
-	for i := len(octal) - 1; i >= 0; i-- {
-		sizeSlice[len(sizeSlice)-(len(octal)-i)-1] = octal[i]
-	}
-	return sizeSlice
-}
-
-func getNameRaw(value string) []byte {
-	return FillWith([]byte(value), 0, 100)
-}
-
-func getUnameRaw(value string) []byte {
-	return FillWith([]byte(value), 0, 32)
-}
-
-func getIdRaw(value uint32) []byte {
-	idSlice := FillWith([]byte{}, 48, 8)
-	idSlice[len(idSlice)-1] = 0
+func dumpValue(value uint, size uint) []byte {
+	valueSlice := FillWith([]byte{}, 48, size)
+	valueSlice[len(valueSlice)-1] = 0
 	octal := DecimalToOctal(uint(value))
 	for i := len(octal) - 1; i >= 0; i-- {
-		idSlice[len(idSlice)-(len(octal)-i)-1] = octal[i]
+		valueSlice[len(valueSlice)-(len(octal)-i)-1] = octal[i]
 	}
-	return idSlice
+	return valueSlice
 }
 
-func getMagicRaw() []byte {
+func getMtime(fileStat fs.FileInfo) uint {
+	if stat, ok := fileStat.Sys().(*syscall.Stat_t); ok {
+		return uint(stat.Mtim.Sec)
+	}
+	panic("Couldn't get mktime")
+}
+
+func dumpMagic() []byte {
 	return []byte{'u', 's', 't', 'a', 'r', 32}
 }
 
-func getVersionRaw() []byte {
-	return []byte{32, 0}
-}
-
-func NewHeaderFromRaw(headerRaw HeaderRaw) Header {
-	return Header{
-		trimPadding(headerRaw.name),
-		getMode(headerRaw.mode),
-		getMode(headerRaw.uid),
-		getMode(headerRaw.gid),
-		OctalToDecimal(headerRaw.size, 11),
-		headerRaw.typeflag,
-		trimPadding(headerRaw.uname),
-		trimPadding(headerRaw.gname),
-		uint(binary.LittleEndian.Uint64(headerRaw.mtime)),
+func getName(id uint32) string {
+	user, err := user.LookupId(strconv.Itoa(int(id)))
+	if err != nil {
+		panic(err)
 	}
+	return user.Name
 }
 
-func getMktimeRaw(value uint) []byte {
-	timeSlice := FillWith([]byte{}, 48, 12)
-	timeSlice[len(timeSlice)-1] = 0
-	octal := DecimalToOctal(value)
-	for i := len(octal) - 1; i >= 0; i-- {
-		timeSlice[len(timeSlice)-(len(octal)-i)-1] = octal[i]
+func NewHeaderFromFile(file string) Header {
+	fileHandle, err := os.OpenFile(file, os.O_RDONLY, 0755)
+	if err != nil {
+		panic(err)
 	}
-	return timeSlice
+	fileStat, err := fileHandle.Stat()
+	if err != nil {
+		panic(err)
+	}
+
+	uid, gid := getIds(fileStat)
+
+	var header Header
+	header.name = FillWith([]byte(fileStat.Name()), 0, NameLen)
+	header.mode = dumpMode(uint32(fileStat.Mode()))
+	header.uid = dumpValue(uint(uid), UidLen)
+	header.gid = dumpValue(uint(gid), GidLen)
+	header.size = dumpValue(uint(fileStat.Size()), SizeLen)
+	header.mtime = dumpValue(getMtime(fileStat), MtimeLen)
+	header.chksum = make([]byte, ChksumLen)
+	header.typeflag = byte(RegulatFileType)
+	header.linkname = FillWith([]byte{}, 0, LinknameLen)
+	header.magic = dumpMagic()
+	header.version = FillWith([]byte{32}, 0, VersionLen)
+	header.uname = FillWith([]byte(getName(uid)), 0, UnameLen)
+	header.gname = FillWith([]byte(getName(gid)), 0, GnameLen)
+	header.devmajor = FillWith([]byte{}, 0, DevmajorLen)
+	header.devminor = FillWith([]byte{}, 0, DevminorLen)
+	header.prefix = FillWith([]byte{}, 0, PrefixLen)
+	return header
 }
 
-func getChksum(header HeaderRaw) []byte {
-	return []byte{48, 49, 50, 52, 54, 55, 0, 32}
-	// return FillWith([]byte{}, 0, 8)
-	// dump := header.Dump()
-	// fmt.Println(len(dump))
-	// acc := uint64(0)
-	// for idx := 0; idx < 512; idx = idx+8{
-	// 	acc = acc + binary.LittleEndian.Uint64(dump[idx:idx+8])
-	// }
-	// fmt.Println(acc)
+func readWrapper(manager IDataBytesManager, size uint) []byte {
+	data, _ := manager.Read(size)
+	return data
+}
 
-	// chksum := []byte{}
-	// binary.LittleEndian.PutUint64(chksum, acc)
-	// return chksum
+func NewHeaderFromDump(headerDump []byte) Header {
+	manager := NewDataBytesSliceManager(headerDump)
+	return Header{readWrapper(manager, NameLen),
+		readWrapper(manager, ModeLen),
+		readWrapper(manager, UidLen),
+		readWrapper(manager, GidLen),
+		readWrapper(manager, SizeLen),
+		readWrapper(manager, MtimeLen),
+		readWrapper(manager, ChksumLen),
+		readWrapper(manager, 1)[0],
+		readWrapper(manager, LinknameLen),
+		readWrapper(manager, MagicLen),
+		readWrapper(manager, VersionLen),
+		readWrapper(manager, UnameLen),
+		readWrapper(manager, GnameLen),
+		readWrapper(manager, DevmajorLen),
+		readWrapper(manager, DevminorLen),
+		readWrapper(manager, PrefixLen)}
+}
+
+func (header *Header) Dump() []byte {
+	var dump []byte
+	dump = append(dump, header.name...)
+	dump = append(dump, header.mode...)
+	dump = append(dump, header.uid...)
+	dump = append(dump, header.gid...)
+	dump = append(dump, header.size...)
+	dump = append(dump, header.mtime...)
+	dump = append(dump, header.chksum...)
+	dump = append(dump, header.typeflag)
+	dump = append(dump, header.linkname...)
+	dump = append(dump, header.magic...)
+	dump = append(dump, header.version...)
+	dump = append(dump, header.uname...)
+	dump = append(dump, header.gname...)
+	dump = append(dump, header.devmajor...)
+	dump = append(dump, header.devminor...)
+	dump = append(dump, header.prefix...)
+	return FillWith(dump, 0, BlockSize)
 }
 
 func (header *Header) ToString() string {
-	return fmt.Sprintf("%+v\n", header)
-}
-
-func (header *Header) ToRaw() HeaderRaw {
-	var rawHeader HeaderRaw
-	rawHeader.chksum = FillWith([]byte{}, 32, 8)
-	rawHeader.linkname = make([]byte, 100)
-	rawHeader.devmajor = make([]byte, 8)
-	rawHeader.devminor = make([]byte, 8)
-	rawHeader.prefix = make([]byte, 155)
-
-	rawHeader.name = getNameRaw(header.name)
-	rawHeader.mode = getModeRaw(header.mode)
-	rawHeader.uid = getIdRaw(header.uid)
-	rawHeader.gid = getIdRaw(header.gid)
-	rawHeader.size = getSizeRaw(header.size)
-	rawHeader.uname = getUnameRaw(header.uname)
-	rawHeader.gname = getUnameRaw(header.gname)
-	rawHeader.magic = getMagicRaw()
-	rawHeader.version = getVersionRaw()
-	rawHeader.mtime = getMktimeRaw(header.mktime)
-	rawHeader.typeflag = header.filetype
-	rawHeader.chksum = getChksum(rawHeader)
-	return rawHeader
+	return fmt.Sprintf("Name: %x (%s)", header.name, header.name) +
+		fmt.Sprintf("\nMode: %s (%d)", header.mode, header.mode) +
+		fmt.Sprintf("\nUID: %s (%d)", header.uid, header.uid) +
+		fmt.Sprintf("\nGID: %s (%d)", header.gid, header.gid) +
+		fmt.Sprintf("\nSize: %x (%d)", header.size, header.size) +
+		fmt.Sprintf("\nMtime: %s (%d)", header.mtime, header.mtime) +
+		fmt.Sprintf("\nChksum: %s (%d)", header.chksum, header.chksum) +
+		fmt.Sprintf("\nTypeflag: %c", header.typeflag) +
+		fmt.Sprintf("\nLinkname: %x", header.linkname) +
+		fmt.Sprintf("\nMagic: %s (%d)", header.magic, header.magic) +
+		fmt.Sprintf("\nVersion: %s (%d)", header.version, header.version) +
+		fmt.Sprintf("\nUname: %x (%s)", header.uname, header.uname) +
+		fmt.Sprintf("\nGname: %x (%s)", header.gname, header.gname) +
+		fmt.Sprintf("\nDevmajor: %x", header.devmajor) +
+		fmt.Sprintf("\nDevminor: %x", header.devminor) +
+		fmt.Sprintf("\nPrefix: %x", header.prefix)
 }

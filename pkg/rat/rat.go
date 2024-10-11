@@ -33,6 +33,16 @@ func GetDataFromManager(fileManager IDataBytesManager, size int64) []byte {
 	return data
 }
 
+func trimPadding(value []byte) string {
+	var paddingIdx int
+	for paddingIdx = 0; paddingIdx < len(value); paddingIdx++ {
+		if value[paddingIdx] == 0 {
+			break
+		}
+	}
+	return string(value[:paddingIdx])
+}
+
 func validateHeader(data []byte) bool {
 	for _, value := range data {
 		if value != 0 {
@@ -65,20 +75,11 @@ func Rat(inputFiles []string, outputFile string) {
 			panic("Folder rating not yet supported")
 		}
 
-		fileHandle, err := os.OpenFile(file, os.O_RDONLY, 0755)
-		if err != nil {
-			panic(err)
-		}
-		stat, err := fileHandle.Stat()
-		if err != nil {
-			panic(err)
-		}
-		header := NewHeader(stat, RegulatFileType)
-		headerRaw := header.ToRaw()
-		outputDumper.Dump(headerRaw.Dump())
+		header := NewHeaderFromFile(file)
+		outputDumper.Dump(header.Dump())
 
 		dataManager := NewDataBytesFileManager(file)
-		missingBytes := header.size
+		missingBytes := OctalToDecimal(header.size, 11)
 		for {
 			fileData, _ := dataManager.Read(BlockSize)
 			outputDumper.Dump(FillWith(fileData, 0, BlockSize))
@@ -122,35 +123,36 @@ func Derat(filesList []string, outputFolder string) {
 				break
 			}
 
-			headerRaw := NewHeaderRaw(data)
-			fmt.Println(headerRaw.ToString())
-			header := NewHeaderFromRaw(headerRaw)
+			header := NewHeaderFromDump(data)
+			fmt.Println(header.ToString())
 
-			if header.filetype == DirFileType {
-				err := os.MkdirAll(filepath.Join(outputFolder, filepath.Dir(header.name)), 0755)
+			filename := trimPadding(header.name)
+			if header.typeflag == DirFileType {
+				err := os.MkdirAll(filepath.Join(outputFolder, filepath.Dir(filename)), 0755)
 				if err != nil {
 					panic(err)
 				}
 				continue
 			}
 
-			fmt.Printf("Reading file %s (%d)... ", header.name, header.size)
+			size := OctalToDecimal(header.size, 11)
+			fmt.Printf("Reading file %s (%d)... ", header.name, size)
 			var fileData []byte
 			var bytesRead uint
 			for {
 				data, _ := dataBytesManager.Read(BlockSize)
 				fileData = append(fileData, data...)
 				bytesRead = bytesRead + BlockSize
-				if bytesRead >= header.size {
+				if bytesRead >= size {
 					break
 				}
 			}
 			fileData = fileData[:getPaddingIndex(fileData)]
 			fmt.Printf("Done.\n")
 
-			outputFile := filepath.Join(outputFolder, header.name)
+			outputFile := filepath.Join(outputFolder, filename)
 			fmt.Printf("Writing output file %s... ", outputFile)
-			err := os.MkdirAll(filepath.Dir(header.name), 0755)
+			err := os.MkdirAll(filepath.Dir(filename), 0755)
 			if err != nil {
 				panic(err)
 			}

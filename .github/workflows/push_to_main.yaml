@@ -20,6 +20,7 @@ jobs:
     - id: test-rat-package
       name: Test rat package
       run: |
+        cd pkg/rat/ && go mod tidy && go test -v -cover
         TEST_RESULT=$(cd pkg/rat/ && go mod tidy && go test -v -cover)
         echo "results=$TEST_RESULT" >> "$GITHUB_OUTPUT"
 

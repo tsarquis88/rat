@@ -1,7 +1,6 @@
 package rat
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -21,13 +20,13 @@ func trimPadding(value []byte) string {
 	return string(value[:paddingIdx])
 }
 
-func validateHeader(data []byte) bool {
+func isBlockEmpty(data []byte) bool {
 	for _, value := range data {
 		if value != 0 {
-			return true
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 func convertMode(value []byte) uint32 {
@@ -39,7 +38,6 @@ func convertMode(value []byte) uint32 {
 }
 
 func Rat(inputFiles []string, outputFile string) {
-
 	if FileExists(outputFile) {
 		panic("Output file exists")
 	}
@@ -47,7 +45,7 @@ func Rat(inputFiles []string, outputFile string) {
 	if outExtension == ".gz" {
 		panic("Rat compression not yet supported")
 	}
-	outputDumper := NewDataBytesDumper(outputFile, 438)
+	writer := NewBlockWriter(outputFile, 438)
 
 	var filesToRat []string
 	for _, file := range inputFiles {
@@ -60,46 +58,37 @@ func Rat(inputFiles []string, outputFile string) {
 
 	for _, file := range filesToRat {
 		header := NewHeaderFromFile(file)
-		outputDumper.Dump(header.Dump())
+		writer.WriteBlock(header.Dump())
 
 		if header.typeflag == DirFileType {
 			continue
 		}
 
-		dataManager := NewDataBytesFileManager(file)
-		missingBytes := OctalToDecimal(header.size, 11)
+		BlockReader := NewBlockReader(file, BlockSize)
 		for {
-			fileData, _ := dataManager.Read(BlockSize)
-			outputDumper.Dump(FillWith(fileData, 0, BlockSize))
-
-			if int(missingBytes-BlockSize) <= 0 {
+			block, more := BlockReader.ReadBlock()
+			writer.WriteBlock(block)
+			if !more {
 				break
 			}
-			missingBytes -= BlockSize
 		}
 	}
 }
 
 func Derat(filesList []string, outputFolder string) {
 	for _, inputFile := range filesList {
-
-		var dataBytesManager IDataBytesManager
 		inExtension := filepath.Ext(inputFile)
 		if inExtension == ".gz" {
-			fmt.Print("Decompressing... ")
-			dataBytesManager = NewDataBytesSliceManager(GzipDecompress(FileRead(inputFile)))
-			fmt.Printf("Done\n")
-		} else {
-			dataBytesManager = NewDataBytesFileManager(inputFile)
+			panic("Rat compression not yet supported")
 		}
 
+		reader := NewBlockReader(inputFile, BlockSize)
 		for {
-			data, _ := dataBytesManager.Read(BlockSize)
-			if !validateHeader(data) {
+			headerBlock, _ := reader.ReadBlock()
+			if isBlockEmpty(headerBlock) {
 				break
 			}
-
-			header := NewHeaderFromDump(data)
+			header := NewHeaderFromDump(headerBlock)
 
 			filename := trimPadding(header.name)
 			if header.typeflag == DirFileType {
@@ -111,28 +100,23 @@ func Derat(filesList []string, outputFolder string) {
 			}
 
 			size := OctalToDecimal(header.size, 11)
-			fmt.Printf("Reading file %s (%d)... ", header.name, size)
-			var fileData []byte
-			var bytesRead uint
-			for {
-				data, _ := dataBytesManager.Read(BlockSize)
-				fileData = append(fileData, data...)
-				bytesRead = bytesRead + BlockSize
-				if bytesRead >= size {
-					break
-				}
-			}
-			fileData = fileData[:size]
-			fmt.Printf("Done.\n")
-
 			outputFile := filepath.Join(outputFolder, filename)
-			fmt.Printf("Writing output file %s... ", outputFile)
 			err := os.MkdirAll(filepath.Dir(outputFile), 0755)
 			if err != nil {
 				panic(err)
 			}
-			NewDataBytesDumper(outputFile, os.FileMode(convertMode(header.mode))).Dump(fileData)
-			fmt.Printf("Done.\n")
+			writer := NewBlockWriter(outputFile, os.FileMode(convertMode(header.mode)))
+
+			var bytesRead uint
+			for {
+				data, _ := reader.ReadBlock()
+				bytesRead = bytesRead + BlockSize
+				if bytesRead >= size {
+					writer.WriteBlock(data[:BlockSize-(bytesRead-size)]) // Trim remaining zeroes.
+					break
+				}
+				writer.WriteBlock(data)
+			}
 		}
 	}
 }

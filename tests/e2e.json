@@ -1,0 +1,21 @@
+{
+    "logLevel": "DEBUG",
+    "tests": [
+        {
+            "description": "Input file rating",
+            "inputRatFiles": [
+                "tests/input_files/fileA.json"
+            ],
+            "outputDeratFolder": "/tmp/ratTest",
+            "outputRatFile": "out.rat"
+        },
+        {
+            "description": "Input folder rating",
+            "inputRatFiles": [
+                "tests/input_files"
+            ],
+            "outputDeratFolder": "/tmp/ratTest",
+            "outputRatFile": "out.rat"
+        }
+    ]
+}

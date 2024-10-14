@@ -4,7 +4,16 @@
         {
             "description": "Input file rating",
             "inputRatFiles": [
-                "tests/input_files/fileA.json"
+                "tests/input_files/folderA/fileA.json"
+            ],
+            "outputDeratFolder": "/tmp/ratTest",
+            "outputRatFile": "out.rat"
+        },
+        {
+            "description": "Multiple input file rating",
+            "inputRatFiles": [
+                "tests/input_files/folderA/fileA.json",
+                "tests/input_files/folderA/fileB.xml"
             ],
             "outputDeratFolder": "/tmp/ratTest",
             "outputRatFile": "out.rat"
@@ -12,7 +21,33 @@
         {
             "description": "Input folder rating",
             "inputRatFiles": [
-                "tests/input_files"
+                "tests/input_files/folderA/"
+            ],
+            "outputDeratFolder": "/tmp/ratTest",
+            "outputRatFile": "out.rat"
+        },
+        {
+            "description": "Multiple input folder rating",
+            "inputRatFiles": [
+                "tests/input_files/folderA/",
+                "tests/input_files/folderB/"
+            ],
+            "outputDeratFolder": "/tmp/ratTest",
+            "outputRatFile": "out.rat"
+        },
+        {
+            "description": "Input folder and files rating",
+            "inputRatFiles": [
+                "tests/input_files/folderA/",
+                "tests/input_files/folderB/fileC.bin"
+            ],
+            "outputDeratFolder": "/tmp/ratTest",
+            "outputRatFile": "out.rat"
+        },
+        {
+            "description": "Recursive input folder rating",
+            "inputRatFiles": [
+                "tests/input_files/folderC/"
             ],
             "outputDeratFolder": "/tmp/ratTest",
             "outputRatFile": "out.rat"

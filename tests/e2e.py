@@ -15,9 +15,12 @@ def init_logger(level):
 def hashFiles(files, folder):
     hashMap = {}
     for file in files:
-        parsedFiles = [os.path.join(dirpath,f) for (dirpath, dirnames, filenames) in os.walk(file) for f in filenames]
-        for parsedFile in parsedFiles:
-            hashMap[parsedFile] = hashFile(os.path.join(folder, parsedFile))
+        if os.path.isdir(file):
+            parsedFiles = [os.path.join(dirpath,f) for (dirpath, dirnames, filenames) in os.walk(file) for f in filenames]
+            for parsedFile in parsedFiles:
+                hashMap[parsedFile] = hashFile(os.path.join(folder, parsedFile))
+        else:
+            hashMap[file] = hashFile(os.path.join(folder, file))
     return hashMap
 
 
@@ -42,7 +45,7 @@ def readConfig():
 
 
 def setup(testCase):
-    logging.info('Test: ' + json.dumps(testCase))
+    logging.debug('Test config: ' + json.dumps(testCase))
     os.mkdir(testCase['outputDeratFolder'])
 
 
@@ -102,11 +105,17 @@ init_logger(config['logLevel'])
 
 build()
 for case in config['tests']:
+    logging.info('===> Test: ' + case['description'])
+
     setup(case)
     ratMap = hashFiles(case['inputRatFiles'], '')
+    logging.debug('Rat map ' + str(ratMap))
     rat(case)
     derat(case)
     deratMap = hashFiles(case['inputRatFiles'], case['outputDeratFolder'])
+    logging.debug('Derat map: ' + str(deratMap))
     validate(ratMap, deratMap)
     clean(case)
+
+    logging.info("<=== Test succeded\n")
 

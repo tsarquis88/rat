@@ -108,7 +108,7 @@ func (suite *BlockReaderTestSuite) TestReadBlockMultipleBlocks() {
 	assert.True(suite.T(), more)
 
 	block, more = reader.ReadBlock()
-	expectedBlock = fileData[BlockSize:BlockSize*2]
+	expectedBlock = fileData[BlockSize : BlockSize*2]
 	assert.Equal(suite.T(), expectedBlock, block)
 	assert.True(suite.T(), more)
 

@@ -8,7 +8,7 @@ import (
 
 type BlockReader struct {
 	fileHandle os.File
-	blockSize uint
+	blockSize  uint
 }
 
 func NewBlockReader(filename string, blockSize uint) BlockReader {

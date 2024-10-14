@@ -7,7 +7,7 @@ func remove(slice []string, s int) []string {
 	return append(slice[:s], slice[s+1:]...)
 }
 
-func Parse(args []string) (bool, []string) {
+func Parse(args []string) (bool, string, []string) {
 	argsQty := len(args)
 	if argsQty < 2 {
 		panic("Missing arguments")
@@ -15,11 +15,15 @@ func Parse(args []string) (bool, []string) {
 	args = remove(args, 0)
 
 	rat := true
+	outputFolder := ""
 	for i, arg := range args {
 		if arg == "-x" {
 			rat = false
 			args = remove(args, i)
-			break
+		} else if arg == "-C" {
+			outputFolder = args[i+1]
+			args = remove(args, i)
+			args = remove(args, i)
 		}
 	}
 
@@ -27,5 +31,5 @@ func Parse(args []string) (bool, []string) {
 		panic("Missing arguments")
 	}
 
-	return rat, args
+	return rat, outputFolder, args
 }

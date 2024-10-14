@@ -30,11 +30,5 @@ jobs:
     - name: Test cmdLineParser package
       run: cd pkg/cmdLineParser/ && go mod tidy && go test -v
 
-    - name: Build cmd
-      run: cd cmd/rat/ && go mod tidy && go build -v
-    
-    - name: Test end-to-end
-      run: |
-        cd cmd/rat/
-        ./main /tmp/out.rat ../../tests/input_files/
-        ./main -x /tmp/out.rat
+    - name: Build and test end-to-en
+      run: python3 tests/e2e.py tests/e2e.json

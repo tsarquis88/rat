@@ -31,7 +31,7 @@ func (suite *BlockReaderTestSuite) TestNewBlockReader() {
 }
 
 func (suite *BlockReaderTestSuite) TestNewBlockReaderInexistantFile() {
-	assert.Panics(suite.T(), func() { NewBlockReader(suite.testFileB, 512) }, "Should panic")
+	assert.Panics(suite.T(), func() { NewBlockReader(suite.testFileB, 512) })
 }
 
 // ReadBlock()

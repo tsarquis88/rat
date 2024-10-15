@@ -7,7 +7,7 @@ import (
 
 func TestParseNoArguments(t *testing.T) {
 	args := []string{"binaryName"}
-	assert.Panics(t, func() { Parse(args) }, "Should panic")
+	assert.Panics(t, func() { Parse(args) })
 }
 
 func TestParseRat(t *testing.T) {

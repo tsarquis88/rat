@@ -69,7 +69,7 @@ func (suite *RatTestSuite) TestRatOutputFileExists() {
 	filesInDir := GetFilesInDir(suite.inputFolder, false, false)
 	os.WriteFile(suite.outputFile, []byte("12345"), 0755)
 
-	assert.Panics(suite.T(), func() { Rat(filesInDir, suite.outputFile) }, "Should panic")
+	assert.Panics(suite.T(), func() { Rat(filesInDir, suite.outputFile) })
 }
 
 func TestRatTestSuite(t *testing.T) {

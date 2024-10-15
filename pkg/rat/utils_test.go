@@ -36,7 +36,7 @@ func (suite *UtilsTestSuite) TestFileRead() {
 func (suite *UtilsTestSuite) TestFileReadInexistantFile() {
 	testFile := filepath.Join(suite.outputFolder, "test.file")
 
-	assert.Panics(suite.T(), func() { FileRead(testFile) }, "Should panic")
+	assert.Panics(suite.T(), func() { FileRead(testFile) })
 }
 
 func (suite *UtilsTestSuite) TestFileReadBigFile() {
@@ -91,7 +91,7 @@ func (suite *UtilsTestSuite) TestIsDirNegative() {
 func (suite *UtilsTestSuite) TestIsDirNegativeInexistant() {
 	testFolder := suite.outputFolder + "test_folder"
 
-	assert.Panics(suite.T(), func() { IsDir(testFolder) }, "Should panic")
+	assert.Panics(suite.T(), func() { IsDir(testFolder) })
 }
 
 // GetFilesInDir()
@@ -145,7 +145,7 @@ func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFilesWithDir() {
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirInexistantDir() {
-	assert.Panics(suite.T(), func() { GetFilesInDir(suite.outputFolder+"folder", false, false) }, "Should panic")
+	assert.Panics(suite.T(), func() { GetFilesInDir(suite.outputFolder+"folder", false, false) })
 }
 
 func (suite *UtilsTestSuite) TestGetFilesInDirMultipleFilesWithDirRecursive() {
@@ -190,7 +190,7 @@ func (suite *UtilsTestSuite) TestHashFile() {
 }
 
 func (suite *UtilsTestSuite) TestHashFileInexistantFile() {
-	assert.Panics(suite.T(), func() { HashFile(suite.outputFolder + "file") }, "Should panic")
+	assert.Panics(suite.T(), func() { HashFile(suite.outputFolder + "file") })
 }
 
 // GzipCompress()
@@ -221,7 +221,7 @@ func (suite *UtilsTestSuite) TestOctalToDecimalReducedLen() {
 }
 
 func (suite *UtilsTestSuite) TestOctalToDecimalOutOfIndex() {
-	assert.Panics(suite.T(), func() { OctalToDecimal([]byte{'7', '6', '5', '4', '3', '2', '1'}, 9) }, "Should panic")
+	assert.Panics(suite.T(), func() { OctalToDecimal([]byte{'7', '6', '5', '4', '3', '2', '1'}, 9) })
 }
 
 // DecimalToOctal()
@@ -252,6 +252,37 @@ func (suite *UtilsTestSuite) TestTrimPrefixRecursive() {
 	assert.Equal(suite.T(), "folder/file.json", TrimPrefixRecursive("../../folder/file.json", "../"))
 	assert.Equal(suite.T(), "folder/file.json", TrimPrefixRecursive("../folder/file.json", "../"))
 	assert.Equal(suite.T(), "folder/file.json", TrimPrefixRecursive("folder/file.json", "../"))
+}
+
+// GetChecksum()
+
+func (suite *UtilsTestSuite) TestGetChecksum() {
+	data := []byte{0, 1, 2, 3}
+	assert.Equal(suite.T(), uint(6), GetChecksum(data))
+}
+
+func (suite *UtilsTestSuite) TestGetChecksumEmpty() {
+	data := []byte{}
+	assert.Equal(suite.T(), uint(0), GetChecksum(data))
+}
+
+func (suite *UtilsTestSuite) TestGetChecksumBigSlice() {
+	const DataSize = 1000
+	data := FillWith([]byte{}, 3, DataSize)
+	assert.Equal(suite.T(), uint(3000), GetChecksum(data))
+}
+
+// ShiftLeft()
+
+func (suite *UtilsTestSuite) TestShiftLeft() {
+	data := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	assert.Equal(suite.T(), []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 99}, ShiftLeft(data, 1, 99))
+	assert.Equal(suite.T(), []byte{6, 7, 8, 9, 99, 99, 99, 99, 99, 99}, ShiftLeft(data, 5, 99))
+}
+
+func (suite *UtilsTestSuite) TestShiftLeftBigAmount() {
+	data := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	assert.Panics(suite.T(), func() { ShiftLeft(data, 100, 99) })
 }
 
 // TestUtilsTestSuite()

@@ -30,7 +30,7 @@ func (suite *BlockWriterTestSuite) TestNewBlockWriter() {
 }
 
 func (suite *BlockWriterTestSuite) TestNewBlockWriterInexistantFolder() {
-	assert.Panics(suite.T(), func() { NewBlockWriter(filepath.Join(suite.outputFolder, "other_folder", "test_file.json"), 438) }, "Should panic")
+	assert.Panics(suite.T(), func() { NewBlockWriter(filepath.Join(suite.outputFolder, "other_folder", "test_file.json"), 438) })
 }
 
 // WriteBlock()

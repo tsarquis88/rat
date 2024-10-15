@@ -121,7 +121,7 @@ func NewHeaderFromFile(file string) Header {
 	header.gid = dumpValue(uint(gid), GidLen)
 	header.size = dumpValue(uint(fileStat.Size()), SizeLen)
 	header.mtime = dumpValue(getMtime(fileStat), MtimeLen)
-	header.chksum = make([]byte, ChksumLen)
+	header.chksum = FillWith([]byte{}, 32, ChksumLen)
 	header.typeflag = byte(typeflag)
 	header.linkname = FillWith([]byte{}, 0, LinknameLen)
 	header.magic = dumpMagic()
@@ -131,6 +131,10 @@ func NewHeaderFromFile(file string) Header {
 	header.devmajor = FillWith([]byte{}, 0, DevmajorLen)
 	header.devminor = FillWith([]byte{}, 0, DevminorLen)
 	header.prefix = FillWith([]byte{}, 0, PrefixLen)
+
+	// Checksum always at the end.
+	header.chksum = ShiftLeft(dumpValue(GetChecksum(header.Dump()), ChksumLen), 1, 32)
+
 	return header
 }
 

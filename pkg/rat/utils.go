@@ -163,3 +163,24 @@ func TrimPrefixRecursive(s string, prefix string) string {
 	}
 	return TrimPrefixRecursive(s[len(prefix):], prefix)
 }
+
+func GetChecksum(data []byte) uint {
+	sum := uint(0)
+	for _, dataByte := range data {
+		sum += uint(dataByte)
+	}
+	return sum
+}
+
+func ShiftLeft(data []byte, amount int, fill byte) []byte {
+	shiftedData := data
+
+	for i := 0; i < len(shiftedData)-amount; i++ {
+		shiftedData[i] = shiftedData[i+amount]
+	}
+	for j := len(shiftedData) - amount; j < len(shiftedData); j++ {
+		shiftedData[j] = fill
+	}
+
+	return shiftedData
+}

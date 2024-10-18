@@ -29,6 +29,12 @@ func (manager *BlockReader) ReadBlock() ([]byte, bool) {
 		}
 		panic(err)
 	}
+	return FillWith(buff, 0, manager.blockSize), (uint(n) == manager.blockSize)
+}
 
-	return FillWith(buff, 0, manager.blockSize), (n == BlockSize)
+func (manager *BlockReader) AdjustOffset(offset uint) {
+	_, err := manager.fileHandle.Seek(int64(offset), 1)
+	if err != nil {
+		panic(err)
+	}
 }

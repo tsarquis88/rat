@@ -3,9 +3,10 @@ package rat
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-const BlockSize = 512
+const BlockSize = 512 // TODO: Set as param
 
 const RegularFileType = '0'
 const DirFileType = '5'
@@ -64,9 +65,9 @@ func Rat(inputFiles []string, outputFile string) {
 			continue
 		}
 
-		BlockReader := NewBlockReader(file, BlockSize)
+		blockReader := NewBlockReader(file, BlockSize)
 		for {
-			block, more := BlockReader.ReadBlock()
+			block, more := blockReader.ReadBlock()
 			writer.WriteBlock(block)
 			if !more {
 				break
@@ -119,4 +120,42 @@ func Derat(filesList []string, outputFolder string) {
 			}
 		}
 	}
+}
+
+func List(filesList []string) map[string]string {
+	filesMap := make(map[string]string)
+	for _, inputFile := range filesList {
+		inExtension := filepath.Ext(inputFile)
+		if inExtension == ".gz" {
+			panic("Rat compression not yet supported")
+		}
+
+		filesMap[inputFile] = ""
+
+		reader := NewBlockReader(inputFile, BlockSize)
+		for {
+			headerBlock, _ := reader.ReadBlock()
+			if isBlockEmpty(headerBlock) {
+				if filesMap[inputFile] != "" {
+					filesMap[inputFile] = strings.TrimSuffix(filesMap[inputFile], "\n")
+				}
+				break
+			}
+			header := NewHeaderFromDump(headerBlock)
+			size := OctalToDecimal(header.size, 11)
+			filesMap[inputFile] += trimPadding(header.name) + "\n"
+
+			if header.typeflag != DirFileType {
+				newOffset := uint(0)
+				for {
+					newOffset += BlockSize
+					if newOffset >= size {
+						break
+					}
+				}
+				reader.AdjustOffset(newOffset)
+			}
+		}
+	}
+	return filesMap
 }

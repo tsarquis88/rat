@@ -12,18 +12,12 @@ func TestParseNoArguments(t *testing.T) {
 
 func TestParseRat(t *testing.T) {
 	args := []string{"binaryName", "output.rat", "fileA.json"}
-	rat, outputFolder, files := Parse(args)
-	assert.Equal(t, true, rat)
-	assert.Equal(t, "", outputFolder)
-	assert.Equal(t, []string{"output.rat", "fileA.json"}, files)
+	assert.Equal(t, Parameters{true, false, "", "output.rat", []string{"fileA.json"}}, Parse(args))
 }
 
 func TestParseRatMultipleFiles(t *testing.T) {
 	args := []string{"binaryName", "output.rat", "fileA.json", "fileB.xml"}
-	rat, outputFolder, files := Parse(args)
-	assert.Equal(t, true, rat)
-	assert.Equal(t, "", outputFolder)
-	assert.Equal(t, []string{"output.rat", "fileA.json", "fileB.xml"}, files)
+	assert.Equal(t, Parameters{true, false, "", "output.rat", []string{"fileA.json", "fileB.xml"}}, Parse(args))
 }
 
 func TestParseRatMissingArguments(t *testing.T) {
@@ -33,32 +27,20 @@ func TestParseRatMissingArguments(t *testing.T) {
 
 func TestParseDerat(t *testing.T) {
 	args := []string{"binaryName", "fileA.rat", "-x"}
-	rat, outputFolder, files := Parse(args)
-	assert.Equal(t, false, rat)
-	assert.Equal(t, "", outputFolder)
-	assert.Equal(t, []string{"fileA.rat"}, files)
+	assert.Equal(t, Parameters{false, false, "", "", []string{"fileA.rat"}}, Parse(args))
 }
 
 func TestParseDeratMultipleFiles(t *testing.T) {
 	args := []string{"binaryName", "fileA.rat", "-x", "fileB.rat"}
-	rat, outputFolder, files := Parse(args)
-	assert.Equal(t, false, rat)
-	assert.Equal(t, "", outputFolder)
-	assert.Equal(t, []string{"fileA.rat", "fileB.rat"}, files)
+	assert.Equal(t, Parameters{false, false, "", "", []string{"fileA.rat", "fileB.rat"}}, Parse(args))
 }
 
 func TestParseRatWithOutputFolder(t *testing.T) {
 	args := []string{"binaryName", "output.rat", "fileA.json", "-C", "outputFolder"}
-	rat, outputFolder, files := Parse(args)
-	assert.Equal(t, true, rat)
-	assert.Equal(t, "outputFolder", outputFolder)
-	assert.Equal(t, []string{"output.rat", "fileA.json"}, files)
+	assert.Equal(t, Parameters{true, false, "outputFolder", "output.rat", []string{"fileA.json"}}, Parse(args))
 }
 
 func TestParseDeratWithOutputFolder(t *testing.T) {
 	args := []string{"binaryName", "fileA.rat", "-x", "fileB.rat", "-C", "outputFolder"}
-	rat, outputFolder, files := Parse(args)
-	assert.Equal(t, false, rat)
-	assert.Equal(t, "outputFolder", outputFolder)
-	assert.Equal(t, []string{"fileA.rat", "fileB.rat"}, files)
+	assert.Equal(t, Parameters{false, false, "outputFolder", "", []string{"fileA.rat", "fileB.rat"}}, Parse(args))
 }

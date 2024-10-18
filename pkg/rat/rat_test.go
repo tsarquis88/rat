@@ -3,6 +3,7 @@ package rat
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,6 +38,15 @@ func (suite *RatTestSuite) TestRatAndDerat() {
 	Rat(inputFiles, suite.outputFile)
 	assert.Equal(suite.T(), true, FileExists(suite.outputFile))
 
+	// List
+	expectedFiles := make(map[string]string)
+	expectedFiles[suite.outputFile] = ""
+	for _, file := range filesInDir {
+		expectedFiles[suite.outputFile] += file + "\n"
+	}
+	expectedFiles[suite.outputFile] = strings.TrimSuffix(expectedFiles[suite.outputFile], "\n")
+	assert.Equal(suite.T(), expectedFiles, List([]string{suite.outputFile}))
+
 	Derat([]string{suite.outputFile}, suite.outputFolder)
 	for file, hash := range originalFiles {
 		filepath := filepath.Join(suite.outputFolder, file)
@@ -55,6 +65,15 @@ func (suite *RatTestSuite) TestRatAndDeratFolder() {
 
 	Rat([]string{suite.inputFolder}, suite.outputFile)
 	assert.Equal(suite.T(), true, FileExists(suite.outputFile))
+
+	// List
+	expectedFiles := make(map[string]string)
+	expectedFiles[suite.outputFile] = suite.inputFolder + "\n"
+	for _, file := range filesInDir {
+		expectedFiles[suite.outputFile] += file + "\n"
+	}
+	expectedFiles[suite.outputFile] = strings.TrimSuffix(expectedFiles[suite.outputFile], "\n")
+	assert.Equal(suite.T(), expectedFiles, List([]string{suite.outputFile}))
 
 	Derat([]string{suite.outputFile}, suite.outputFolder)
 	assert.Equal(suite.T(), true, FileExists(filepath.Join(suite.outputFolder, suite.inputFolder)))

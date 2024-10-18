@@ -51,7 +51,6 @@ func (suite *BlockReaderTestSuite) TestReadBlockExactSize() {
 
 	assert.Equal(suite.T(), fileData, block)
 	assert.True(suite.T(), more)
-
 }
 
 func (suite *BlockReaderTestSuite) TestReadBlockLessSize() {
@@ -115,6 +114,41 @@ func (suite *BlockReaderTestSuite) TestReadBlockMultipleBlocks() {
 	block, more = reader.ReadBlock()
 	expectedBlock = FillWith(fileData[BlockSize*2:], 0, BlockSize)
 	assert.Equal(suite.T(), expectedBlock, block)
+	assert.False(suite.T(), more)
+}
+
+// AdjustOffset()
+
+func (suite *BlockReaderTestSuite) TestAdjustOffset() {
+	const BlockSize = 2
+	const FileDataSize = 15
+
+	var fileData []byte
+	for i := 0; i < FileDataSize; i++ {
+		fileData = append(fileData, byte(i))
+	}
+	os.WriteFile(suite.testFileA, fileData, 0755)
+
+	reader := NewBlockReader(suite.testFileA, BlockSize)
+
+	block, more := reader.ReadBlock()
+	assert.Equal(suite.T(), []byte{0, 1}, block)
+	assert.True(suite.T(), more)
+
+	reader.AdjustOffset(3)
+
+	block, more = reader.ReadBlock()
+	assert.Equal(suite.T(), []byte{5, 6}, block)
+	assert.True(suite.T(), more)
+
+	reader.AdjustOffset(5)
+
+	block, more = reader.ReadBlock()
+	assert.Equal(suite.T(), []byte{12, 13}, block)
+	assert.True(suite.T(), more)
+
+	block, more = reader.ReadBlock()
+	assert.Equal(suite.T(), []byte{14, 0}, block)
 	assert.False(suite.T(), more)
 }
 

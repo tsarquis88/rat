@@ -48,6 +48,9 @@ func (suite *HeaderTestSuite) TestNewHeaderFromFile() {
 	assert.Equal(suite.T(), expectedMagic, header.magic)
 	assert.Equal(suite.T(), expectedVersion, header.version)
 }
+func (suite *HeaderTestSuite) TestNewHeaderFromFileInexistantFile() {
+	assert.Panics(suite.T(), func() { NewHeaderFromFile(suite.testFile) })
+}
 
 // NewHeaderFromDump()
 

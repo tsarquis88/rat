@@ -32,7 +32,7 @@ func (suite *HeaderTestSuite) TestNewHeaderFromFile() {
 	fileData := FillWith([]byte{}, 50, FileSize)
 	os.WriteFile(suite.testFile, fileData, 0755)
 
-	header := NewHeaderFromFile(suite.testFile)
+	header := NewHeaderFromFile(suite.testFile, DefaultBlockSize)
 
 	expectedName := FillWith([]byte(strings.TrimPrefix(suite.testFile, "/")), 0, NameLen)
 	expectedMode := []byte{'0', '0', '0', '0', '7', '5', '5', 0}
@@ -49,7 +49,7 @@ func (suite *HeaderTestSuite) TestNewHeaderFromFile() {
 	assert.Equal(suite.T(), expectedVersion, header.version)
 }
 func (suite *HeaderTestSuite) TestNewHeaderFromFileInexistantFile() {
-	assert.Panics(suite.T(), func() { NewHeaderFromFile(suite.testFile) })
+	assert.Panics(suite.T(), func() { NewHeaderFromFile(suite.testFile, DefaultBlockSize) })
 }
 
 // NewHeaderFromDump()

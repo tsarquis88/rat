@@ -94,7 +94,7 @@ func getName(id uint32) string {
 	return user.Name
 }
 
-func NewHeaderFromFile(file string) Header {
+func NewHeaderFromFile(file string, blockSize uint) Header {
 	fileHandle, err := os.OpenFile(file, os.O_RDONLY, 0755)
 	if err != nil {
 		panic(err)
@@ -133,7 +133,7 @@ func NewHeaderFromFile(file string) Header {
 	header.prefix = FillWith([]byte{}, 0, PrefixLen)
 
 	// Checksum always at the end.
-	header.chksum = ShiftLeft(dumpValue(GetChecksum(header.Dump()), ChksumLen), 1, 32)
+	header.chksum = ShiftLeft(dumpValue(GetChecksum(header.Dump(blockSize)), ChksumLen), 1, 32)
 
 	return header
 }
@@ -163,7 +163,7 @@ func NewHeaderFromDump(headerDump []byte) Header {
 		readWrapper(manager, PrefixLen)}
 }
 
-func (header *Header) Dump() []byte {
+func (header *Header) Dump(blockSize uint) []byte {
 	var dump []byte
 	dump = append(dump, header.name...)
 	dump = append(dump, header.mode...)
@@ -181,7 +181,7 @@ func (header *Header) Dump() []byte {
 	dump = append(dump, header.devmajor...)
 	dump = append(dump, header.devminor...)
 	dump = append(dump, header.prefix...)
-	return FillWith(dump, 0, BlockSize)
+	return FillWith(dump, 0, blockSize)
 }
 
 func (header *Header) ToString() string {

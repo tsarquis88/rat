@@ -35,7 +35,9 @@ func (suite *RatTestSuite) TestRatAndDerat() {
 		inputFiles = append(inputFiles, file)
 	}
 
-	Rat(inputFiles, suite.outputFile)
+	ratDerat := NewRatDerat(1)
+
+	ratDerat.Rat(inputFiles, suite.outputFile)
 	assert.Equal(suite.T(), true, FileExists(suite.outputFile))
 
 	// List
@@ -45,9 +47,9 @@ func (suite *RatTestSuite) TestRatAndDerat() {
 		expectedFiles[suite.outputFile] += file + "\n"
 	}
 	expectedFiles[suite.outputFile] = strings.TrimSuffix(expectedFiles[suite.outputFile], "\n")
-	assert.Equal(suite.T(), expectedFiles, List([]string{suite.outputFile}))
+	assert.Equal(suite.T(), expectedFiles, ratDerat.List([]string{suite.outputFile}))
 
-	Derat([]string{suite.outputFile}, suite.outputFolder)
+	ratDerat.Derat([]string{suite.outputFile}, suite.outputFolder)
 	for file, hash := range originalFiles {
 		filepath := filepath.Join(suite.outputFolder, file)
 		assert.Equal(suite.T(), true, FileExists(filepath))
@@ -63,7 +65,9 @@ func (suite *RatTestSuite) TestRatAndDeratFolder() {
 		originalFiles[file] = HashFile(file)
 	}
 
-	Rat([]string{suite.inputFolder}, suite.outputFile)
+	ratDerat := NewRatDerat(1)
+
+	ratDerat.Rat([]string{suite.inputFolder}, suite.outputFile)
 	assert.Equal(suite.T(), true, FileExists(suite.outputFile))
 
 	// List
@@ -73,9 +77,9 @@ func (suite *RatTestSuite) TestRatAndDeratFolder() {
 		expectedFiles[suite.outputFile] += file + "\n"
 	}
 	expectedFiles[suite.outputFile] = strings.TrimSuffix(expectedFiles[suite.outputFile], "\n")
-	assert.Equal(suite.T(), expectedFiles, List([]string{suite.outputFile}))
+	assert.Equal(suite.T(), expectedFiles, ratDerat.List([]string{suite.outputFile}))
 
-	Derat([]string{suite.outputFile}, suite.outputFolder)
+	ratDerat.Derat([]string{suite.outputFile}, suite.outputFolder)
 	assert.Equal(suite.T(), true, FileExists(filepath.Join(suite.outputFolder, suite.inputFolder)))
 	for file, hash := range originalFiles {
 		filepath := filepath.Join(suite.outputFolder, file)
@@ -88,7 +92,9 @@ func (suite *RatTestSuite) TestRatOutputFileExists() {
 	filesInDir := GetFilesInDir(suite.inputFolder, false, false)
 	os.WriteFile(suite.outputFile, []byte("12345"), 0755)
 
-	assert.Panics(suite.T(), func() { Rat(filesInDir, suite.outputFile) })
+	ratDerat := NewRatDerat(1)
+
+	assert.Panics(suite.T(), func() { ratDerat.Rat(filesInDir, suite.outputFile) })
 }
 
 func TestRatTestSuite(t *testing.T) {

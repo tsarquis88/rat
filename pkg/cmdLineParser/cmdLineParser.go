@@ -1,11 +1,14 @@
 package cmdLineParser
 
+import "strconv"
+
 type Parameters struct {
-	Rat          bool
-	List         bool
-	OutputFolder string
-	OutputFile   string
-	InputFiles   []string
+	Rat            bool
+	List           bool
+	OutputFolder   string
+	OutputFile     string
+	InputFiles     []string
+	BlockingFactor uint
 }
 
 func remove(slice []string, s int) []string {
@@ -26,6 +29,7 @@ func Parse(args []string) Parameters {
 	params.Rat = true
 	params.List = false
 	params.OutputFolder = ""
+	params.BlockingFactor = 1
 	for i, arg := range args {
 		if arg == "-x" {
 			params.Rat = false
@@ -36,6 +40,14 @@ func Parse(args []string) Parameters {
 			args = remove(args, i)
 		} else if arg == "-t" {
 			params.List = true
+		} else if arg == "-b" {
+			parsedSize, err := strconv.Atoi(args[i+1])
+			if err != nil {
+				panic(err)
+			}
+			params.BlockingFactor = uint(parsedSize)
+			args = remove(args, i)
+			args = remove(args, i)
 		}
 	}
 

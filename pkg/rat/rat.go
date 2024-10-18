@@ -6,10 +6,18 @@ import (
 	"strings"
 )
 
-const BlockSize = 512 // TODO: Set as param
+const DefaultBlockSize = 512
 
 const RegularFileType = '0'
 const DirFileType = '5'
+
+type RatDerat struct {
+	blockSize uint
+}
+
+func NewRatDerat(blockingFactor uint) RatDerat {
+	return RatDerat{DefaultBlockSize * blockingFactor}
+}
 
 func trimPadding(value []byte) string {
 	var paddingIdx int
@@ -38,7 +46,7 @@ func convertMode(value []byte) uint32 {
 	return mode
 }
 
-func Rat(inputFiles []string, outputFile string) {
+func (ratDerat *RatDerat) Rat(inputFiles []string, outputFile string) {
 	if FileExists(outputFile) {
 		panic("Output file exists")
 	}
@@ -58,14 +66,14 @@ func Rat(inputFiles []string, outputFile string) {
 	}
 
 	for _, file := range filesToRat {
-		header := NewHeaderFromFile(file)
-		writer.WriteBlock(header.Dump())
+		header := NewHeaderFromFile(file, ratDerat.blockSize)
+		writer.WriteBlock(header.Dump(ratDerat.blockSize))
 
 		if header.typeflag == DirFileType {
 			continue
 		}
 
-		blockReader := NewBlockReader(file, BlockSize)
+		blockReader := NewBlockReader(file, ratDerat.blockSize)
 		for {
 			block, more := blockReader.ReadBlock()
 			writer.WriteBlock(block)
@@ -76,14 +84,14 @@ func Rat(inputFiles []string, outputFile string) {
 	}
 }
 
-func Derat(filesList []string, outputFolder string) {
+func (ratDerat *RatDerat) Derat(filesList []string, outputFolder string) {
 	for _, inputFile := range filesList {
 		inExtension := filepath.Ext(inputFile)
 		if inExtension == ".gz" {
 			panic("Rat compression not yet supported")
 		}
 
-		reader := NewBlockReader(inputFile, BlockSize)
+		reader := NewBlockReader(inputFile, ratDerat.blockSize)
 		for {
 			headerBlock, _ := reader.ReadBlock()
 			if isBlockEmpty(headerBlock) {
@@ -111,9 +119,9 @@ func Derat(filesList []string, outputFolder string) {
 			var bytesRead uint
 			for {
 				data, _ := reader.ReadBlock()
-				bytesRead = bytesRead + BlockSize
+				bytesRead = bytesRead + ratDerat.blockSize
 				if bytesRead >= size {
-					writer.WriteBlock(data[:BlockSize-(bytesRead-size)]) // Trim remaining zeroes.
+					writer.WriteBlock(data[:ratDerat.blockSize-(bytesRead-size)]) // Trim remaining zeroes.
 					break
 				}
 				writer.WriteBlock(data)
@@ -122,7 +130,7 @@ func Derat(filesList []string, outputFolder string) {
 	}
 }
 
-func List(filesList []string) map[string]string {
+func (ratDerat *RatDerat) List(filesList []string) map[string]string {
 	filesMap := make(map[string]string)
 	for _, inputFile := range filesList {
 		inExtension := filepath.Ext(inputFile)
@@ -132,7 +140,7 @@ func List(filesList []string) map[string]string {
 
 		filesMap[inputFile] = ""
 
-		reader := NewBlockReader(inputFile, BlockSize)
+		reader := NewBlockReader(inputFile, ratDerat.blockSize)
 		for {
 			headerBlock, _ := reader.ReadBlock()
 			if isBlockEmpty(headerBlock) {
@@ -148,7 +156,7 @@ func List(filesList []string) map[string]string {
 			if header.typeflag != DirFileType {
 				newOffset := uint(0)
 				for {
-					newOffset += BlockSize
+					newOffset += ratDerat.blockSize
 					if newOffset >= size {
 						break
 					}

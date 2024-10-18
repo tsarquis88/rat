@@ -11,13 +11,15 @@ import (
 func main() {
 	params := cmdLineParser.Parse(os.Args)
 
+	ratDerat := rat.NewRatDerat(params.BlockingFactor)
+
 	if params.List {
-		for _, files := range rat.List(params.InputFiles) {
+		for _, files := range ratDerat.List(params.InputFiles) {
 			fmt.Println(files)
 		}
 	} else if params.Rat {
-		rat.Rat(params.InputFiles, params.OutputFile)
+		ratDerat.Rat(params.InputFiles, params.OutputFile)
 	} else {
-		rat.Derat(params.InputFiles, params.OutputFolder)
+		ratDerat.Derat(params.InputFiles, params.OutputFolder)
 	}
 }
